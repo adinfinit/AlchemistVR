@@ -12,16 +12,14 @@ public class PuzzleGenerator : MonoBehaviour
 	// Use this for initialization
 	void Start ()
 	{
-		puzzle = new World.Wall (3, 5);
+		puzzle = new World.Wall (3, 5, 5, 5);
 		puzzle.Randomize ();
 
-		print ("Someting");
-		foreach (World.Ring ring in puzzle.rings) {
-			print ("Rings");
+		for (int i = 1; i < puzzle.rings.Length; i++) {
+			World.Ring ring = puzzle.rings [i];
 			foreach (World.Tile tile in ring.tiles) {
 				print (tile.joints);
 				if (tile.joints.Length == 1) {
-					print ("Something else");
 					GameObject newTile = (GameObject)Instantiate (TilePrefab);
 					tiles.Add (newTile);
 
