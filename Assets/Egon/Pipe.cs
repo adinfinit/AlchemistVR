@@ -5,8 +5,12 @@ using UnityEngine;
 public class Pipe : MonoBehaviour
 {
 	public Lab lab;
+
 	public World.Wall wall;
 	public World.Tile tile;
+
+	public float angleOffset = 0.0f;
+	public float snapOffset = 0.0f;
 
 	void Start ()
 	{
@@ -15,7 +19,7 @@ public class Pipe : MonoBehaviour
 
 	void Update ()
 	{
-		
+		transform.localPosition = TargetPosition ();
 	}
 
 	public void Init (Lab lab, World.Wall wall, World.Tile tile)
@@ -25,16 +29,32 @@ public class Pipe : MonoBehaviour
 		this.tile = tile;
 
 		transform.localScale = new Vector3 (lab.TileRadius, lab.TileRadius, lab.TileRadius);
+		transform.localRotation = Quaternion.Euler (90, Mathf.Rad2Deg * tile.Angle () + 90f, 0);
 		transform.localPosition = TargetPosition ();
 	}
 
 	Vector3 TargetPosition ()
 	{
 		Vector3 position = new Vector3 ();
-		float angle = tile.Angle () - Mathf.PI / 2f;
+
+		int n = tile.layer.tiles.Length;
+
+		float anglePerTile = 2f * Mathf.PI / (float)n;
+
+		float fixedAngle = (float)tile.index * anglePerTile;
+		float smoothAngle = fixedAngle + angleOffset;
+
+		// int offsetIndex = (int)Mathf.Round (angleOffset / anglePerTile);
+		// float snapAngle = (float)(tile.index + offsetIndex) * anglePerTile;
+
+		float angle = fixedAngle + angleOffset + Mathf.PI * 0.25f;
+
 		position.x = lab.WallRadius * Mathf.Cos (angle);
-		position.z = lab.WallRadius * Mathf.Sin (angle);
-		position.y = -tile.Y () * lab.TileRadius * lab.YSpacing;
+		position.z = -lab.WallRadius * Mathf.Sin (angle);
+
+		float dy = Mathf.Cos (angle * tile.layer.tiles.Length * 0.5f) * 0.5f * 0.5f;
+		position.y = -((float)tile.layer.index + dy) * lab.TileRadius * lab.YSpacing;
+
 		return position;
 	}
 }

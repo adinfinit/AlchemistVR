@@ -18,9 +18,60 @@ public class Lab : MonoBehaviour
 		CreateLevel ();
 	}
 
+
+	bool inputWasDown = false;
+	bool inputIsDown = false;
+
+	Ray selectionStartRay;
+	List<Pipe> selection = new List<Pipe> ();
+
 	void Update ()
 	{
-		
+		inputWasDown = inputIsDown;
+		inputIsDown = Input.GetMouseButton (0);
+
+		if (Input.GetMouseButtonDown (0)) { // down
+			selection.Clear ();
+
+			Pipe targetPipe = null;
+			selectionStartRay = Camera.main.ScreenPointToRay (Input.mousePosition);
+			foreach (RaycastHit hit in Physics.RaycastAll(selectionStartRay)) {
+				targetPipe = hit.collider.GetComponent<Pipe> ();
+				if (targetPipe != null) {
+					break;
+				}
+			}
+
+			if (targetPipe != null) {
+				
+				foreach (World.Tile tile in targetPipe.tile.layer.tiles) {
+					if (tile == null) {
+						continue;
+					}
+
+					selection.Add (tile.visual);
+				}
+			}
+		}
+
+		if (Input.GetMouseButton (0)) { // press
+			Ray currentRay = Camera.main.ScreenPointToRay (Input.mousePosition);
+
+			Vector2 start = new Vector2 (selectionStartRay.direction.x, selectionStartRay.direction.z);
+			Vector2 current = new Vector2 (currentRay.direction.x, currentRay.direction.z);
+			 
+			float rotation = Vector2.SignedAngle (current, start) * Mathf.Deg2Rad;
+			foreach (Pipe pipe in selection) {
+				pipe.angleOffset = rotation;
+			}
+		}
+
+		if (Input.GetMouseButtonUp (0)) { // release
+			foreach (Pipe pipe in selection) {
+				pipe.angleOffset = 0f;
+			}
+			selection.Clear ();
+		}
 	}
 
 	void CreateLevel ()
@@ -33,20 +84,23 @@ public class Lab : MonoBehaviour
 		objects.transform.name = "Wall";
 		objects.transform.parent = transform;
 
-		float totalHeight = wall.rings.Length * TileRadius * YSpacing;
+		float totalHeight = wall.layers.Length * TileRadius * YSpacing;
 		objects.transform.position = new Vector3 (0f, totalHeight, 0f);
 
-		foreach (World.Ring ring in wall.rings) {
+		foreach (World.Layer ring in wall.layers) {
 			foreach (World.Tile tile in ring.tiles) {
 				if (tile == null) {
 					continue;
 				}
 
 				GameObject sphere = GameObject.CreatePrimitive (PrimitiveType.Sphere);
-				sphere.transform.name = "Pipe_" + tile.layer + "_" + tile.index;
+				sphere.transform.name = "Pipe_" + tile.layer.index + "_" + tile.index;
 				sphere.transform.parent = objects.transform;
 
+				SphereCollider collider = sphere.AddComponent<SphereCollider> ();
+
 				Pipe pipe = sphere.AddComponent<Pipe> ();
+				tile.visual = pipe;
 				pipe.Init (this, wall, tile);
 
 				MeshRenderer renderer = sphere.GetComponent<MeshRenderer> ();

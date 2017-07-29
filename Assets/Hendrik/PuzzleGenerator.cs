@@ -15,8 +15,8 @@ public class PuzzleGenerator : MonoBehaviour
 		puzzle = new World.Wall (3, 5, 5, 5);
 		puzzle.Randomize ();
 
-		for (int i = 1; i < puzzle.rings.Length; i++) {
-			World.Ring ring = puzzle.rings [i];
+		for (int i = 1; i < puzzle.layers.Length; i++) {
+			World.Layer ring = puzzle.layers [i];
 			foreach (World.Tile tile in ring.tiles) {
 				print (tile.joints);
 				if (tile.joints.Length == 1) {
@@ -29,7 +29,7 @@ public class PuzzleGenerator : MonoBehaviour
 					TileData tileData = newTile.GetComponent<TileData> ();
 					tileData.wall = puzzle;
 					tileData.index = tile.index;
-					tileData.layer = tile.layer;
+					tileData.layer = tile.layer.index;
 
 				} else if (tile.joints.Length == 2) {
 					GameObject newTile = (GameObject)Instantiate (TilePrefab);
@@ -41,7 +41,7 @@ public class PuzzleGenerator : MonoBehaviour
 					TileData tileData = newTile.GetComponent<TileData> ();
 					tileData.wall = puzzle;
 					tileData.index = tile.index;
-					tileData.layer = tile.layer;
+					tileData.layer = tile.layer.index;
 
 				}
 			}

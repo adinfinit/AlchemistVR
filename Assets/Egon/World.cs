@@ -11,17 +11,17 @@ namespace World
 
 	public class Wall
 	{
-		public Ring[] rings;
+		public Layer[] layers;
 		public List<Connection> connections;
 
-		public Wall (int ringCount, int tileCount, int sources, int drains)
+		public Wall (int layerCount, int tileCount, int sources, int drains)
 		{
-			rings = new Ring[ringCount];
-			for (int i = 0; i < rings.Length; i++) {
-				rings [i] = new Ring (this, i, tileCount);
+			layers = new Layer[layerCount];
+			for (int i = 0; i < layers.Length; i++) {
+				layers [i] = new Layer (this, i, tileCount);
 			}
-			rings [0].MakeSpecial (sources, 2);
-			rings [rings.Length - 1].MakeSpecial (sources, 0);
+			layers [0].MakeSpecial (sources, 2);
+			layers [layers.Length - 1].MakeSpecial (sources, 0);
 
 			connections = new List<Connection> ();
 		}
@@ -36,9 +36,9 @@ namespace World
 			//      1,1     1,3
 			//
 			bool changed = false;
-			foreach (Ring ring in rings) {
-				for (int i = 0; i < ring.tiles.Length; i += 2) {
-					Tile tile = ring.tiles [i];
+			foreach (Layer layer in layers) {
+				for (int i = 0; i < layer.tiles.Length; i += 2) {
+					Tile tile = layer.tiles [i];
 					if (tile == null) {
 						continue;
 					}
@@ -47,8 +47,8 @@ namespace World
 						changed = joint.Update () || changed;
 					}
 				}
-				for (int i = 1; i < ring.tiles.Length; i += 2) {
-					Tile tile = ring.tiles [i];
+				for (int i = 1; i < layer.tiles.Length; i += 2) {
+					Tile tile = layer.tiles [i];
 					if (tile == null) {
 						continue;
 					}
@@ -69,8 +69,8 @@ namespace World
 		{
 			List<Connection> conns = new List<Connection> ();
 
-			foreach (Ring ring in rings) {
-				foreach (Tile tile in ring.tiles) {
+			foreach (Layer layer in layers) {
+				foreach (Tile tile in layer.tiles) {
 					if (tile == null) {
 						continue;
 					}
@@ -82,16 +82,16 @@ namespace World
 				}
 			}
 
-			foreach (Ring ring in rings) {
-				Ring ringb = null;
-				if (ring.layer + 1 < rings.Length) {
-					ringb = rings [ring.layer + 1];
+			foreach (Layer layer in layers) {
+				Layer layerBottom = null;
+				if (layer.index + 1 < layers.Length) {
+					layerBottom = layers [layer.index + 1];
 				}
 
 				List<Connection> tops = new List<Connection> ();
 				List<Connection> bottoms = new List<Connection> ();
 
-				foreach (Tile tile in ring.tiles) {
+				foreach (Tile tile in layer.tiles) {
 					if (tile == null) {
 						continue;
 					}
@@ -100,14 +100,14 @@ namespace World
 					Tile bottom = null;
 					Tile right = null;
 
-					if (ringb != null) {
-						bottom = ringb.At (tile.index);
+					if (layerBottom != null) {
+						bottom = layerBottom.At (tile.index);
 					}
 
-					Ring ringlr = tile.IsOffset () ? ringb : ring;
-					if (ringlr != null) {
-						left = ringlr.At (tile.index - 1);
-						right = ringlr.At (tile.index + 1);
+					Layer layerSide = tile.IsOffset () ? layerBottom : layer;
+					if (layerSide != null) {
+						left = layerSide.At (tile.index - 1);
+						right = layerSide.At (tile.index + 1);
 					}
 
 					List<Connection> target = tile.IsOffset () ? bottoms : tops;
@@ -157,9 +157,9 @@ namespace World
 
 		public void Randomize ()
 		{
-			for (int i = 0; i < rings.Length; i++) {
-				Ring ring = rings [i];
-				ring.Randomize ();
+			for (int i = 0; i < layers.Length; i++) {
+				Layer layer = layers [i];
+				layer.Randomize ();
 			}
 
 			updateConnections ();
@@ -167,28 +167,28 @@ namespace World
 
 		public void RandomizeColors ()
 		{
-			foreach (Ring ring in rings) {
-				ring.RandomizeColors ();
+			foreach (Layer layer in layers) {
+				layer.RandomizeColors ();
 			}
 		}
 	}
 
-	public class Ring
+	public class Layer
 	{
 		public Wall wall;
-		public int layer;
+		public int index;
 		//TODO: use enum instead of flag
 		public bool special = false;
 
 		public Tile[] tiles;
 
-		public Ring (Wall wall, int layer, int tileCount)
+		public Layer (Wall wall, int index, int tileCount)
 		{
 			this.wall = wall;
-			this.layer = layer;
+			this.index = index;
 			tiles = new Tile[tileCount];
 			for (int i = 0; i < tiles.Length; i++) {
-				tiles [i] = new Tile (this, layer, i);
+				tiles [i] = new Tile (this, i);
 			}
 		}
 
@@ -201,7 +201,7 @@ namespace World
 
 			for (int k = 0; k < count; k++) {
 				int index = (k * 2 + tiles.Length) % tiles.Length;
-				Tile tile = new Tile (this, layer, index);
+				Tile tile = new Tile (this, index);
 				tiles [index] = tile;
 
 				Joint joint = new Joint (tile);
@@ -230,7 +230,7 @@ namespace World
 			wall.updateConnections ();
 		}
 
-		// randomize each tile in ring
+		// randomize each tile in layer
 		public void Randomize ()
 		{
 			if (special) {
@@ -268,19 +268,19 @@ namespace World
 			Potion
 		}
 
-		public Ring ring;
+		public Pipe visual;
+
+		public Layer layer;
 		public Kind kind = Kind.Pipe;
-		public int index, layer;
+		public int index;
 
 		// null | Joint that is in that port
 		public Joint[] ports = new Joint[6];
 		// list of all joints
 		public Joint[] joints = new Joint[0];
 
-		public Tile (Ring ring, int layer, int index)
+		public Tile (Layer layer, int index)
 		{
-			this.ring = ring;
-
 			this.layer = layer;
 			this.index = index;
 		}
@@ -335,13 +335,13 @@ namespace World
 		// Angle is the angular wall-space position
 		public float Angle ()
 		{
-			return (float)Mathf.PI * 2.0f * (float)index / (float)ring.tiles.Length;
+			return (float)Mathf.PI * 2.0f * (float)index / (float)layer.tiles.Length;
 		}
 
 		// Returns Y height in tile units
 		public float Y ()
 		{
-			return (float)layer + (IsOffset () ? 0.5f : 0.0f);
+			return (float)layer.index + (IsOffset () ? 0.5f : 0.0f);
 		}
 	}
 
