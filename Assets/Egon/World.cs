@@ -24,14 +24,53 @@ namespace World
 			connections = new List<Connection> ();
 		}
 
+
 		// update connections list
 		private void updateConnections ()
 		{
 			connections.Clear ();
 
-			// TODO
-		}
+			foreach (Ring ring in rings) {
+				Ring ringb = null;
+				if (ring.layer + 1 < rings.Length) {
+					ringb = rings [ring.layer + 1];
+				}
 
+				List<Connection> tops = new List<Connection> ();
+				List<Connection> bottoms = new List<Connection> ();
+
+				foreach (Tile tile in ring.tiles) {
+					Tile left = null;
+					Tile bottom = null;
+					Tile right = null;
+
+					if (ringb != null) {
+						bottom = ringb.At (tile.index);
+					}
+
+					Ring ringlr = tile.IsOffset () ? ringb : ring;
+					if (ringlr != null) {
+						left = ringlr.At (tile.index - 1);
+						right = ringlr.At (tile.index + 1);
+					}
+
+					List<Connection> target = tile.IsOffset () ? bottoms : tops;
+
+					if (bottom != null && tile.used [3] && bottom.used [0]) {
+						target.Add (new Connection (tile, bottom));
+					}
+					if (left != null && tile.used [4] && left.used [1]) {
+						target.Add (new Connection (tile, bottom));
+					}
+					if (right != null && tile.used [2] && right.used [5]) {
+						target.Add (new Connection (tile, bottom));
+					}
+				}
+
+				connections.AddRange (tops);
+				connections.AddRange (bottoms);
+			}
+		}
 
 		public void Randomize ()
 		{
@@ -71,6 +110,11 @@ namespace World
 			}
 		}
 
+		public Tile At (int i)
+		{
+			return tiles [(i + tiles.Length) % tiles.Length];
+		}
+
 		// randomize each tile in ring
 		public void Randomize ()
 		{
@@ -85,8 +129,6 @@ namespace World
 		public Ring ring;
 		public int index, layer;
 
-		[Range (0, 5)]
-		public byte rotation = 0;
 		public bool[] used = new bool[6];
 		public Joint[] joints = new Joint[0];
 
@@ -134,6 +176,11 @@ namespace World
 			updateUsed ();
 		}
 
+		public bool IsOffset ()
+		{
+			return (index & 1) == 1;
+		}
+
 		// Angle is the angular wall-space position
 		public float Angle ()
 		{
@@ -143,7 +190,7 @@ namespace World
 		// Returns Y height in tile units
 		public float Y ()
 		{
-			return (float)this.layer + ((index & 1) == 1 ? 0.5f : 0.0f);
+			return (float)layer + (IsOffset () ? 0.5f : 0.0f);
 		}
 	}
 
