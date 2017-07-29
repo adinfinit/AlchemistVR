@@ -24,15 +24,49 @@ namespace World
 			connections = new List<Connection> ();
 		}
 
-		public void Update ()
+		public void Drain ()
 		{
-			
+			// scan from top to bottom
+			// 
+			//  0,0     0,2     0,4
+			//      0,1     0,3
+			//  1,0     1,2     1,4
+			//      1,1     1,3
+			//
+			bool changed = false;
+			foreach (Ring ring in rings) {
+				for (int i = 0; i < ring.tiles.Length; i += 2) {
+					Tile tile = ring.tiles [i];
+					foreach (Joint joint in tile.joints) {
+						changed = joint.Update () || changed;
+					}
+				}
+				for (int i = 1; i < ring.tiles.Length; i += 2) {
+					Tile tile = ring.tiles [i];
+					foreach (Joint joint in tile.joints) {
+						changed = joint.Update () || changed;
+					}
+				}
+			}
+
+			if (changed) {
+				// TODO: cache if no changes
+			}
 		}
 
-		// update connections list
-		private void updateConnections ()
+		// update connections and joints
+		public void updateConnections ()
 		{
-			connections.Clear ();
+			List<Connection> conns = new List<Connection> ();
+
+			foreach (Ring ring in rings) {
+				foreach (Tile tile in ring.tiles) {
+					foreach (Joint joint in tile.joints) {
+						joint.drains.Clear ();
+						joint.sources.Clear ();
+					}
+				}
+			}
 
 			foreach (Ring ring in rings) {
 				Ring ringb = null;
@@ -59,21 +93,48 @@ namespace World
 					}
 
 					List<Connection> target = tile.IsOffset () ? bottoms : tops;
-
-					if ((bottom != null) && (tile.used [3] >= 0) && (bottom.used [0] >= 0)) {
-						target.Add (new Connection (tile, bottom));
-					}
-					if ((left != null) && (tile.used [4] >= 0) && (left.used [1] >= 0)) {
-						target.Add (new Connection (tile, left));
-					}
-					if ((right != null) && (tile.used [2] >= 0) && (right.used [5] >= 0)) {
-						target.Add (new Connection (tile, right));
-					}
+					tryConnect (target, tile, bottom, 3, 0);
+					tryConnect (target, tile, left, 4, 1);
+					tryConnect (target, tile, right, 2, 5);
 				}
 
-				connections.AddRange (tops);
-				connections.AddRange (bottoms);
+				conns.AddRange (tops);
+				conns.AddRange (bottoms);
 			}
+
+			bool changed = false;
+			if (conns.Count != connections.Count) {
+				changed = true;
+			} else {
+				for (int i = 0; i < conns.Count; i++) {
+					if (!conns [i].Equals (connections [i])) {
+						changed = true;
+						break;
+					}
+				}
+			}
+
+			if (changed) {
+				connections = conns;
+				// TODO: notify UI
+			}
+		}
+
+		private static void tryConnect (List<Connection> conns, Tile srctile, Tile dsttile, byte srci, byte dsti)
+		{
+			if (srctile == null || dsttile == null) {
+				return;
+			}
+
+			Joint src = srctile.ports [srci];
+			Joint dst = dsttile.ports [dsti];
+			if (src == null || dst == null) {
+				return;
+			}
+
+			conns.Add (new Connection (src, dst));
+			src.drains.Add (dst);
+			dst.sources.Add (src);
 		}
 
 		public void Randomize ()
@@ -119,6 +180,21 @@ namespace World
 			return tiles [(i + tiles.Length) % tiles.Length];
 		}
 
+
+		public void Rotate (int offset)
+		{
+			Tile[] next = new Tile[tiles.Length];
+			for (int i = 0; i < tiles.Length; i++) {
+				next [(i + offset + tiles.Length) % tiles.Length] = tiles [i];
+			}
+			for (int i = 0; i < next.Length; i++) {
+				next [i].index = i;
+			}
+			tiles = next;
+
+			wall.updateConnections ();
+		}
+
 		// randomize each tile in ring
 		public void Randomize ()
 		{
@@ -133,7 +209,9 @@ namespace World
 		public Ring ring;
 		public int index, layer;
 
-		public int[] used = new int[6];
+		// null | Joint that is in that port
+		public Joint[] ports = new Joint[6];
+		// list of all joints
 		public Joint[] joints = new Joint[0];
 
 		public Tile (Ring ring, int layer, int index)
@@ -145,14 +223,14 @@ namespace World
 		}
 
 		// update used ports list
-		private void updateUsed ()
+		private void updateCrossReference ()
 		{
-			for (int i = 0; i < this.used.Length; i++) {
-				this.used [i] = -1;
+			for (int i = 0; i < this.ports.Length; i++) {
+				this.ports [i] = null;
 			}
 			for (int i = 0; i < this.joints.Length; i++) {
 				for (int k = 0; k < this.joints [i].ports.Length; k++) {
-					this.used [this.joints [i].ports [k]] = k;
+					this.ports [this.joints [i].ports [k]] = this.joints [i];
 				}
 			}
 		}
@@ -173,11 +251,11 @@ namespace World
 			available.Add (5);
 
 			for (int i = 0; i < this.joints.Length; i++) {
-				this.joints [i] = new Joint ();
+				this.joints [i] = new Joint (this);
 				this.joints [i].Randomize (available);
 			}
 
-			updateUsed ();
+			updateCrossReference ();
 		}
 
 		public bool IsOffset ()
@@ -200,13 +278,23 @@ namespace World
 
 	public class Joint
 	{
+		public Tile tile;
 		public byte[] ports = new byte[0];
+
+		public List<Joint> sources = new List<Joint> ();
+		public List<Joint> drains = new List<Joint> ();
+
 		public Liquid liquid = new Liquid ();
+
+		public Joint (Tile tile)
+		{
+			this.tile = tile;
+		}
 
 		// pick random ports from available
 		public void Randomize (List<byte> available)
 		{
-			int n = Random.Range (1, Mathf.Max (available.Count, 3));
+			int n = Random.Range (1, Mathf.Min (available.Count, 3));
 			ports = new byte[n];
 			for (int i = 0; i < ports.Length; i++) {
 				int k = Random.Range (0, available.Count);
@@ -214,23 +302,44 @@ namespace World
 				available.RemoveAt (k);
 			}
 		}
+
+		public bool Update ()
+		{
+			if (sources.Count == 0) {
+				return false;
+			}
+
+			Liquid next = new Liquid ();
+			foreach (Joint source in sources) {
+				next = next.Mix (source.liquid);
+			}
+
+			if (next.Equals (liquid)) {
+				return false;
+			}
+
+			liquid = next;
+
+			// TODO: notify changed
+
+			return true;
+		}
 	}
 
 	public class Connection
 	{
-		public Tile a, b;
+		public Joint source, drain;
 
-		public Connection (Tile a, Tile b)
+		public Connection (Joint source, Joint drain)
 		{
-			bool swap = false;
-			if (a.layer == b.layer) {
-				swap = b.index > a.index;
-			} else if (b.layer > a.layer) {
-				swap = true;
-			}
+			this.source = source;
+			this.drain = drain;
+		}
 
-			this.a = swap ? b : a;
-			this.b = swap ? a : b;
+		public bool Equals (Connection b)
+		{
+			Connection a = this;
+			return (a.source == b.source) && (a.drain == b.drain);
 		}
 	}
 
@@ -249,6 +358,12 @@ namespace World
 		{
 			Liquid a = this;
 			return new Liquid (a.r | b.r, a.g | b.g, a.b | b.b);
+		}
+
+		public bool Equals (Liquid b)
+		{
+			Liquid a = this;
+			return a.r == b.r && a.g == b.g && a.b == b.b;
 		}
 
 		public Color Color ()
