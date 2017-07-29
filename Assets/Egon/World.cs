@@ -24,6 +24,10 @@ namespace World
 			connections = new List<Connection> ();
 		}
 
+		public void Update ()
+		{
+			
+		}
 
 		// update connections list
 		private void updateConnections ()
@@ -56,14 +60,14 @@ namespace World
 
 					List<Connection> target = tile.IsOffset () ? bottoms : tops;
 
-					if (bottom != null && tile.used [3] && bottom.used [0]) {
+					if ((bottom != null) && (tile.used [3] >= 0) && (bottom.used [0] >= 0)) {
 						target.Add (new Connection (tile, bottom));
 					}
-					if (left != null && tile.used [4] && left.used [1]) {
-						target.Add (new Connection (tile, bottom));
+					if ((left != null) && (tile.used [4] >= 0) && (left.used [1] >= 0)) {
+						target.Add (new Connection (tile, left));
 					}
-					if (right != null && tile.used [2] && right.used [5]) {
-						target.Add (new Connection (tile, bottom));
+					if ((right != null) && (tile.used [2] >= 0) && (right.used [5] >= 0)) {
+						target.Add (new Connection (tile, right));
 					}
 				}
 
@@ -129,7 +133,7 @@ namespace World
 		public Ring ring;
 		public int index, layer;
 
-		public bool[] used = new bool[6];
+		public int[] used = new int[6];
 		public Joint[] joints = new Joint[0];
 
 		public Tile (Ring ring, int layer, int index)
@@ -144,11 +148,11 @@ namespace World
 		private void updateUsed ()
 		{
 			for (int i = 0; i < this.used.Length; i++) {
-				this.used [i] = false;
+				this.used [i] = -1;
 			}
 			for (int i = 0; i < this.joints.Length; i++) {
 				for (int k = 0; k < this.joints [i].ports.Length; k++) {
-					this.used [this.joints [i].ports [k]] = true;
+					this.used [this.joints [i].ports [k]] = k;
 				}
 			}
 		}
