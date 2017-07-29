@@ -24,6 +24,15 @@ namespace World
 			connections = new List<Connection> ();
 		}
 
+		// update connections list
+		private void updateConnections ()
+		{
+			connections.Clear ();
+
+			// TODO
+		}
+
+
 		public void Randomize ()
 		{
 			foreach (Ring ring in rings) {
@@ -33,12 +42,15 @@ namespace World
 			updateConnections ();
 		}
 
-		// update connections list
-		private void updateConnections ()
+		public void RandomizeColors ()
 		{
-			connections.Clear ();
-
-			// TODO
+			foreach (Ring ring in rings) {
+				foreach (Tile tile in ring.tiles) {
+					foreach (Joint joint in tile.joints) {
+						joint.liquid.Randomize ();
+					}
+				}
+			}
 		}
 	}
 
@@ -102,7 +114,7 @@ namespace World
 		// choose random joints
 		public void Randomize ()
 		{
-			int n = Random.Range (1, 2);
+			int n = Random.Range (1, 3);
 			this.joints = new Joint[n];
 
 			List<byte> available = new List<byte> ();
@@ -196,6 +208,14 @@ namespace World
 			c.g = this.g ? 1 : 0;
 			c.b = this.b ? 1 : 0;
 			return c;
+		}
+
+		public void Randomize ()
+		{
+			int v = Random.Range (1, 8);
+			this.r = ((v >> 0) & 1) == 1;
+			this.g = ((v >> 1) & 1) == 1;
+			this.b = ((v >> 2) & 1) == 1;
 		}
 
 		public bool IsFilled ()
