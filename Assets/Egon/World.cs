@@ -111,9 +111,9 @@ namespace World
 					}
 
 					List<Connection> target = tile.IsOffset () ? bottoms : tops;
-					tryConnect (target, tile, bottom, 3, 0);
-					tryConnect (target, tile, left, 4, 1);
-					tryConnect (target, tile, right, 2, 5);
+					tryConnect (target, tile, 3, bottom, 0);
+					tryConnect (target, tile, 4, left, 1);
+					tryConnect (target, tile, 2, right, 5);
 				}
 
 				conns.AddRange (tops);
@@ -138,21 +138,21 @@ namespace World
 			}
 		}
 
-		private static void tryConnect (List<Connection> conns, Tile srctile, Tile dsttile, byte srci, byte dsti)
+		private static void tryConnect (List<Connection> conns, Tile sourceTile, byte sourcePort, Tile drainTile, byte drainPort)
 		{
-			if (srctile == null || dsttile == null) {
+			if (sourceTile == null || drainTile == null) {
 				return;
 			}
 
-			Joint src = srctile.ports [srci];
-			Joint dst = dsttile.ports [dsti];
-			if (src == null || dst == null) {
+			Joint source = sourceTile.ports [sourcePort];
+			Joint drain = drainTile.ports [drainPort];
+			if (source == null || drain == null) {
 				return;
 			}
 
-			conns.Add (new Connection (src, dst));
-			src.drains.Add (dst);
-			dst.sources.Add (src);
+			conns.Add (new Connection (source, sourcePort, drain, drainPort));
+			source.drains.Add (drain);
+			drain.sources.Add (source);
 		}
 
 		public void Randomize ()
@@ -199,7 +199,6 @@ namespace World
 				tiles [i] = null;
 			}
 
-			int start = 0;
 			for (int k = 0; k < count; k++) {
 				int index = (k * 2 + tiles.Length) % tiles.Length;
 				Tile tile = new Tile (this, layer, index);
@@ -262,7 +261,15 @@ namespace World
 
 	public class Tile
 	{
+		public enum Kind
+		{
+			Pipe,
+			Source,
+			Potion
+		}
+
 		public Ring ring;
+		public Kind kind = Kind.Pipe;
 		public int index, layer;
 
 		// null | Joint that is in that port
@@ -294,8 +301,14 @@ namespace World
 		// choose random joints
 		public void Randomize ()
 		{
+			if (kind == Kind.Potion) {
+				
+			} else if (kind == Kind.Source) {
+				
+			}
+
 			int n = Random.Range (1, 3);
-			this.joints = new Joint[n];
+			joints = new Joint[n];
 
 			List<byte> available = new List<byte> ();
 
@@ -306,9 +319,9 @@ namespace World
 			available.Add (4);
 			available.Add (5);
 
-			for (int i = 0; i < this.joints.Length; i++) {
-				this.joints [i] = new Joint (this);
-				this.joints [i].Randomize (available);
+			for (int i = 0; i < joints.Length; i++) {
+				joints [i] = new Joint (this);
+				joints [i].Randomize (available);
 			}
 
 			updateCrossReference ();
@@ -385,17 +398,21 @@ namespace World
 	public class Connection
 	{
 		public Joint source, drain;
+		public byte sourcePort, drainPort;
 
-		public Connection (Joint source, Joint drain)
+		public Connection (Joint source, byte sourcePort, Joint drain, byte drainPort)
 		{
 			this.source = source;
+			this.sourcePort = sourcePort;
 			this.drain = drain;
+			this.drainPort = drainPort;
 		}
 
 		public bool Equals (Connection b)
 		{
 			Connection a = this;
-			return (a.source == b.source) && (a.drain == b.drain);
+			return (a.source == b.source) && (a.drain == b.drain) &&
+			(a.sourcePort == b.sourcePort) && (a.drainPort == b.drainPort);
 		}
 	}
 
