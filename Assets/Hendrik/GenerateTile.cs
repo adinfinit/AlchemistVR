@@ -6,21 +6,33 @@ public class GenerateTile : MonoBehaviour
 {
 	GameObject[] spheres;
 	GameObject[] cylinders;
+	public GameObject cylinder;
+	public GameObject sphere;
 
 	// when two overlaping pipes are generated,
 	// the middle of the pipe is this much above the middle
 	float heightDifference = 0.6f;
 
-	// Use this for initialization
-	void Start ()
+	GameObject CylinderBetweenPoints (Vector3 p1, Vector3 p2)
 	{
+		Vector3 offset = p2 - p1;
+		Vector3 pos = p1 + (offset / 2);
+
+		GameObject cyl = Instantiate (cylinder, Vector3.zero, Quaternion.identity);
+		cyl.transform.position = pos;
+
+		Vector3 scale = new Vector3 (1, offset.magnitude / 2.0f, 1);
+		cyl.transform.up = offset;
+		cyl.transform.localScale = scale;
+
+		return cyl;
 	}
 
-	void Generate (int[] connections)
+	public void Generate (byte[] connections)
 	{
 		// generate spheres
 		spheres = new GameObject[1];
-		spheres [0] = GameObject.CreatePrimitive (PrimitiveType.Sphere);
+		spheres [0] = GameObject.Instantiate (sphere);
 		spheres [0].transform.parent = this.transform;
 		spheres [0].transform.position = new Vector3 (0f, 0f, 0f);	
 
@@ -28,7 +40,7 @@ public class GenerateTile : MonoBehaviour
 
 		// generate cylinders
 		for (int i = 0; i < connections.GetLength (0); i++) {
-			cylinders [i] = GameObject.CreatePrimitive (PrimitiveType.Cylinder);
+			cylinders [i] = Instantiate (cylinder);
 			cylinders [i].transform.parent = this.transform;
 			// 0 is up
 			int side = connections [i];
@@ -46,11 +58,11 @@ public class GenerateTile : MonoBehaviour
 
 	}
 
-	void Generate (int[] connection1, int[] connection2)
+	public void Generate (byte[] connection1, byte[] connection2)
 	{
 		spheres = new GameObject[2];
-		spheres [0] = GameObject.CreatePrimitive (PrimitiveType.Sphere);
-		spheres [1] = GameObject.CreatePrimitive (PrimitiveType.Sphere);
+		spheres [0] = GameObject.Instantiate (sphere);
+		spheres [1] = GameObject.Instantiate (sphere);
 
 		spheres [0].transform.parent = this.transform;
 		spheres [1].transform.parent = this.transform;
@@ -61,42 +73,37 @@ public class GenerateTile : MonoBehaviour
 		cylinders = new GameObject[connection1.GetLength (0) + connection2.GetLength (0)];
 
 		for (int i = 0; i < connection1.GetLength (0); i++) {
-			cylinders [i] = GameObject.CreatePrimitive (PrimitiveType.Cylinder);
-			cylinders [i].transform.parent = this.transform;
 			// 0 is up
 			int side = connection1 [i];
 
+			Vector3 start = new Vector3 (0, heightDifference, 0);
+
 			float angle = Mathf.Deg2Rad * (side * 60f + 90f);
-
-			float angle2 = Mathf.Rad2Deg * Mathf.Atan (-heightDifference);
-
 			float dx = Mathf.Cos (angle);
 			float dz = -Mathf.Sin (angle);
 
-			cylinders [i].transform.position = new Vector3 (dx, 0f, dz);
+			Vector3 end = new Vector3 (dx, 0, dz);
+			end.Scale (new Vector3 (2, 2, 2));
 
-			cylinders [i].transform.Rotate (0, Mathf.Rad2Deg * angle, 90f + angle2);
-
+			cylinders [i] = CylinderBetweenPoints (start, end);
+			cylinders [i].transform.parent = this.transform;
 		}
 
 		for (int i = 0; i < connection2.GetLength (0); i++) {
-			cylinders [i] = GameObject.CreatePrimitive (PrimitiveType.Cylinder);
-			cylinders [i].transform.parent = this.transform;
 			// 0 is up
 			int side = connection2 [i];
 
+			Vector3 start = new Vector3 (0, -heightDifference, 0);
+
 			float angle = Mathf.Deg2Rad * (side * 60f + 90f);
-
-			float angle2 = Mathf.Rad2Deg * Mathf.Atan (heightDifference);
-
 			float dx = Mathf.Cos (angle);
 			float dz = -Mathf.Sin (angle);
 
-			cylinders [1].transform.localScale = new Vector3 (1, 1 + heightDifference / 2, 1);
-			cylinders [i].transform.position = new Vector3 (dx, 0f, dz);
+			Vector3 end = new Vector3 (dx, 0, dz);
+			end.Scale (new Vector3 (2, 2, 2));
 
-			cylinders [i].transform.Rotate (0, Mathf.Rad2Deg * angle, 90f + angle2);
-
+			cylinders [i] = CylinderBetweenPoints (start, end);
+			cylinders [i].transform.parent = this.transform;
 		}
 	}
 }

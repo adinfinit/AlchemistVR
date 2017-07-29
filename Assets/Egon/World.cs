@@ -155,7 +155,7 @@ namespace World
 		// pick random ports from available
 		public void Randomize (List<byte> available)
 		{
-			int n = Random.Range (1, Mathf.Max (available.Count, 3));
+			int n = Random.Range (1, Mathf.Min (available.Count, 3));
 			ports = new byte[n];
 			for (int i = 0; i < ports.Length; i++) {
 				int k = Random.Range (0, available.Count);
