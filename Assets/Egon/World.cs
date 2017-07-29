@@ -14,12 +14,14 @@ namespace World
 		public Ring[] rings;
 		public List<Connection> connections;
 
-		public Wall (int ringCount, int tileCount)
+		public Wall (int ringCount, int tileCount, int sources, int drains)
 		{
 			rings = new Ring[ringCount];
 			for (int i = 0; i < rings.Length; i++) {
 				rings [i] = new Ring (this, i, tileCount);
 			}
+			rings [0].MakeSpecial (sources, 2);
+			rings [rings.Length - 1].MakeSpecial (sources, 0);
 
 			connections = new List<Connection> ();
 		}
@@ -37,12 +39,20 @@ namespace World
 			foreach (Ring ring in rings) {
 				for (int i = 0; i < ring.tiles.Length; i += 2) {
 					Tile tile = ring.tiles [i];
+					if (tile == null) {
+						continue;
+					}
+
 					foreach (Joint joint in tile.joints) {
 						changed = joint.Update () || changed;
 					}
 				}
 				for (int i = 1; i < ring.tiles.Length; i += 2) {
 					Tile tile = ring.tiles [i];
+					if (tile == null) {
+						continue;
+					}
+
 					foreach (Joint joint in tile.joints) {
 						changed = joint.Update () || changed;
 					}
@@ -61,6 +71,10 @@ namespace World
 
 			foreach (Ring ring in rings) {
 				foreach (Tile tile in ring.tiles) {
+					if (tile == null) {
+						continue;
+					}
+
 					foreach (Joint joint in tile.joints) {
 						joint.drains.Clear ();
 						joint.sources.Clear ();
@@ -78,6 +92,10 @@ namespace World
 				List<Connection> bottoms = new List<Connection> ();
 
 				foreach (Tile tile in ring.tiles) {
+					if (tile == null) {
+						continue;
+					}
+
 					Tile left = null;
 					Tile bottom = null;
 					Tile right = null;
@@ -139,7 +157,8 @@ namespace World
 
 		public void Randomize ()
 		{
-			foreach (Ring ring in rings) {
+			for (int i = 0; i < rings.Length; i++) {
+				Ring ring = rings [i];
 				ring.Randomize ();
 			}
 
@@ -149,11 +168,7 @@ namespace World
 		public void RandomizeColors ()
 		{
 			foreach (Ring ring in rings) {
-				foreach (Tile tile in ring.tiles) {
-					foreach (Joint joint in tile.joints) {
-						joint.liquid.Randomize ();
-					}
-				}
+				ring.RandomizeColors ();
 			}
 		}
 	}
@@ -162,6 +177,8 @@ namespace World
 	{
 		public Wall wall;
 		public int layer;
+		//TODO: use enum instead of flag
+		public bool special = false;
 
 		public Tile[] tiles;
 
@@ -172,6 +189,25 @@ namespace World
 			tiles = new Tile[tileCount];
 			for (int i = 0; i < tiles.Length; i++) {
 				tiles [i] = new Tile (this, layer, i);
+			}
+		}
+
+		public void MakeSpecial (int count, byte port)
+		{
+			special = true;
+			for (int i = 0; i < tiles.Length; i++) {
+				tiles [i] = null;
+			}
+
+			int start = 0;
+			for (int k = 0; k < count; k++) {
+				int index = (k * 2 + tiles.Length) % tiles.Length;
+				Tile tile = new Tile (this, layer, index);
+				tiles [index] = tile;
+
+				Joint joint = new Joint (tile);
+				tile.joints = new Joint[1]{ joint };
+				joint.ports = new byte[1]{ port };
 			}
 		}
 
@@ -198,8 +234,28 @@ namespace World
 		// randomize each tile in ring
 		public void Randomize ()
 		{
+			if (special) {
+				return;
+			}
+
 			foreach (Tile tile in tiles) {
+				if (tile == null) {
+					continue;
+				}
+
 				tile.Randomize ();
+			}
+		}
+
+		public void RandomizeColors ()
+		{
+			foreach (Tile tile in tiles) {
+				if (tile == null) {
+					continue;
+				}
+				foreach (Joint joint in tile.joints) {
+					joint.liquid.Randomize ();
+				}
 			}
 		}
 	}
