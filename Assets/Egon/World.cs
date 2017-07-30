@@ -12,12 +12,14 @@ namespace World
 	public class Wall
 	{
 		public Lab lab;
-
 		public Layer[] layers;
-		public List<Connection> connections;
+
+		public List<Connection> connections = new List<Connection> ();
 
 		public Wall (Lab lab, int layerCount, int tileCount, int sources, int drains)
 		{
+			this.lab = lab;
+
 			layers = new Layer[layerCount];
 
 			for (int i = 0; i < layers.Length; i++) {
@@ -93,102 +95,118 @@ namespace World
 		// update connections and joints
 		public void UpdateConnections ()
 		{
-			List<Connection> conns = new List<Connection> ();
+			if (lab != null) {
+				foreach (Connection conn in connections) {
+					lab.ConnectionDestroyed (conn);	
+				}
+			}
 
-			foreach (Layer layer in layers) {
-				foreach (Tile tile in layer.tiles) {
-					if (tile == null) {
-						continue;
-					}
+			connections.Clear ();
 
-					foreach (Joint joint in tile.joints) {
-						joint.drains.Clear ();
-					}
+			foreach (Tile tile in Tiles()) {
+				foreach (Joint joint in tile.joints) {
+					joint.drains.Clear ();
 				}
 			}
 
 			foreach (Layer layer in layers) {
-				Layer layerBottom = null;
-				if (layer.index + 1 < layers.Length) {
-					layerBottom = layers [layer.index + 1];
-				}
+				ConnectLayer (layer);
+			}
+		}
 
-				List<Connection> tops = new List<Connection> ();
-				List<Connection> bottoms = new List<Connection> ();
-
-				foreach (Tile tile in layer.tiles) {
-					if (tile == null) {
-						continue;
-					}
-
-					Tile left = null;
-					Tile bottom = null;
-					Tile right = null;
-
-					if (layerBottom != null) {
-						bottom = layerBottom.At (tile.index);
-					}
-
-					Layer layerSide = tile.IsOffset () ? layerBottom : layer;
-					if (layerSide != null) {
-						left = layerSide.At (tile.index - 1);
-						right = layerSide.At (tile.index + 1);
-					}
-
-					List<Connection> target = tile.IsOffset () ? bottoms : tops;
-					TryConnect (target, tile, 3, bottom, 0);
-					TryConnect (target, tile, 4, left, 1);
-					TryConnect (target, tile, 2, right, 5);
-				}
-
-				conns.AddRange (tops);
-				conns.AddRange (bottoms);
+		public void ConnectLayer (Layer layer)
+		{
+			Layer layerBottom = null;
+			if (layer.index + 1 < layers.Length) {
+				layerBottom = layers [layer.index + 1];
 			}
 
-			bool changed = false;
-			if (conns.Count != connections.Count) {
-				changed = true;
-			} else {
-				for (int i = 0; i < conns.Count; i++) {
-					if (!conns [i].Equals (connections [i])) {
-						changed = true;
-						break;
-					}
+			List<Connection> tops = new List<Connection> ();
+			List<Connection> bottoms = new List<Connection> ();
+
+			foreach (Tile tile in layer.tiles) {
+				if (tile == null) {
+					continue;
+				}
+
+				Tile left = null;
+				Tile bottom = null;
+				Tile right = null;
+
+				if (layerBottom != null) {
+					bottom = layerBottom.At (tile.index);
+				}
+
+				Layer layerSide = tile.IsOffset () ? layerBottom : layer;
+				if (layerSide != null) {
+					left = layerSide.At (tile.index - 1);
+					right = layerSide.At (tile.index + 1);
+				}
+
+				List<Connection> target = tile.IsOffset () ? bottoms : tops;
+				TryConnect (target, tile, 3, bottom, 0);
+				TryConnect (target, tile, 4, left, 1);
+				TryConnect (target, tile, 2, right, 5);
+			}
+
+			foreach (Connection conn in tops) {
+				connections.Add (conn);
+				if (lab != null) {
+					lab.ConnectionCreated (conn);
 				}
 			}
 
-			if (changed) {
+			foreach (Connection conn in bottoms) {
+				connections.Add (conn);
 				if (lab != null) {
-					// TODO: don't destroy everything when some connection changes
-					foreach (Connection conn in connections) {
-						lab.ConnectionDestroyed (conn);	
-					}
+					lab.ConnectionCreated (conn);
 				}
+			}
+		}
 
-				connections = conns;
-
-				if (lab != null) {
-					foreach (Connection conn in connections) {
-						lab.ConnectionCreated (conn);	
+		public void DisconnectTiles (List<Tile> tiles)
+		{
+			for (int i = connections.Count - 1; i >= 0; i--) {
+				Connection conn = connections [i];
+				if (tiles.Contains (conn.source.tile) || tiles.Contains (conn.drain.tile)) {
+					connections.RemoveAt (i);
+					if (lab != null) {
+						lab.ConnectionDestroyed (conn);
 					}
 				}
 			}
 		}
 
-		private static void TryConnect (List<Connection> conns, Tile sourceTile, byte sourcePort, Tile drainTile, byte drainPort)
+		public void DisconnectLayer (Layer layer)
+		{
+			for (int i = connections.Count - 1; i >= 0; i--) {
+				Connection conn = connections [i];
+				if (conn.source.tile.layer == layer || conn.drain.tile.layer == layer) {
+					connections.RemoveAt (i);
+					if (lab != null) {
+						lab.ConnectionDestroyed (conn);
+					}
+				}
+			}
+		}
+
+		public static bool TryConnect (List<Connection> conns, Tile sourceTile, byte sourcePort, Tile drainTile, byte drainPort)
 		{
 			if (sourceTile == null || drainTile == null) {
-				return;
+				return false;
 			}
 
 			Joint source = sourceTile.ports [sourcePort];
 			Joint drain = drainTile.ports [drainPort];
 			if (source == null || drain == null) {
-				return;
+				return false;
 			}
 
-			conns.Add (new Connection (source, sourcePort, drain, drainPort));
+			Connection conn = new Connection (source, sourcePort, drain, drainPort);
+			conns.Add (conn);
 			source.drains.Add (drain);
+
+			return true;
 		}
 	}
 
@@ -239,17 +257,6 @@ namespace World
 			}
 		}
 
-		public void Connect ()
-		{
-
-
-		}
-
-		public void Disconnect ()
-		{
-
-		}
-
 		public Tile At (int i)
 		{
 			return tiles [(i + tiles.Length) % tiles.Length];
@@ -268,6 +275,11 @@ namespace World
 			tiles = next;
 
 			wall.UpdateConnections ();
+		}
+
+		public string ToString ()
+		{
+			return "L" + index;
 		}
 	}
 
@@ -374,7 +386,7 @@ namespace World
 
 	public class Connection
 	{
-		public GameObject gameObject = null;
+		public Object visual = null;
 
 		public Joint source, drain;
 		public byte sourcePort, drainPort;
@@ -499,6 +511,11 @@ namespace World
 			}
 
 			Liquid (ref joint.liquid);
+
+			Lab lab = joint.tile.layer.wall.lab;
+			if (lab != null) {
+				lab.JointChanged (joint);
+			}
 		}
 
 		public static void Liquid (ref Liquid liquid)

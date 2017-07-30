@@ -9,6 +9,9 @@ public class Pipe : MonoBehaviour
 	public World.Wall wall;
 	public World.Tile tile;
 
+	//TODO: probably need some list like this
+	public GameObject[] joints;
+
 	public float angleOffset = 0.0f;
 	public float snapOffset = 0.0f;
 
@@ -20,6 +23,17 @@ public class Pipe : MonoBehaviour
 	void Update ()
 	{
 		transform.localPosition = TargetPosition ();
+		for (int i = 0; i < tile.joints.Length; i++) {
+			SetJointColor (i, tile.joints [i].liquid.Color);
+		}
+	}
+
+	void SetJointColor (int joint, Color color)
+	{
+		MeshRenderer renderer = GetComponent<MeshRenderer> ();
+		renderer.material.color = color;
+
+		// TODO: color joints
 	}
 
 	public void Init (Lab lab, World.Wall wall, World.Tile tile)
@@ -29,6 +43,7 @@ public class Pipe : MonoBehaviour
 		this.tile = tile;
 
 		transform.localScale = new Vector3 (lab.TileRadius, lab.TileRadius, lab.TileRadius);
+		// TODO: fix localRotation
 		transform.localRotation = Quaternion.Euler (90, Mathf.Rad2Deg * Angle () + 90f, 0);
 		transform.localPosition = TargetPosition ();
 	}
