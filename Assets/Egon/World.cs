@@ -284,8 +284,6 @@ namespace World
 				next [i].index = i;
 			}
 			tiles = next;
-
-			wall.UpdateConnections ();
 		}
 
 		override public string ToString ()
