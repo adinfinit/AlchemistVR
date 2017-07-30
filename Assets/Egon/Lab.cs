@@ -75,7 +75,7 @@ public class Lab : MonoBehaviour
 
 	void CreateLevel ()
 	{
-		wall = new World.Wall (Layers + 2, Tiles, 6, 6);
+		wall = new World.Wall (this, Layers + 2, Tiles, 6, 6);
 		World.Randomize.Wall (wall);
 
 		GameObject container = new GameObject ();
@@ -139,6 +139,11 @@ public class Lab : MonoBehaviour
 	}
 
 	public void ConnectionCreated (World.Connection conn)
+	{
+
+	}
+
+	public void JointChanged (World.Joint joint)
 	{
 
 	}

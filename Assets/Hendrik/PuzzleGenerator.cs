@@ -12,12 +12,12 @@ public class PuzzleGenerator : MonoBehaviour
 	// Use this for initialization
 	void Start ()
 	{
-		puzzle = new World.Wall (3, 5, 5, 5);
+		puzzle = new World.Wall (null, 3, 5, 5, 5);
 		World.Randomize.Wall (puzzle);
 
 		for (int i = 1; i < puzzle.layers.Length; i++) {
-			World.Layer ring = puzzle.layers [i];
-			foreach (World.Tile tile in ring.tiles) {
+			World.Layer layer = puzzle.layers [i];
+			foreach (World.Tile tile in layer.tiles) {
 				print (tile.joints);
 				if (tile.joints.Length == 1) {
 					GameObject newTile = (GameObject)Instantiate (TilePrefab);

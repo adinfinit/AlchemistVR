@@ -11,42 +11,48 @@ namespace World
 
 	public class Wall
 	{
+		public Lab lab;
+
 		public Layer[] layers;
 		public List<Connection> connections;
 
-		public Wall (int layerCount, int tileCount, int sources, int drains)
+		public Wall (Lab lab, int layerCount, int tileCount, int sources, int drains)
 		{
 			layers = new Layer[layerCount];
+
 			for (int i = 0; i < layers.Length; i++) {
 				layers [i] = new Layer (this, i, tileCount);
+
+				if (i == 0) {
+					layers [i].InitLocked (Tile.Kind.Source, sources);
+				} else if (i == layers.Length - 1) {
+					layers [i].InitLocked (Tile.Kind.Drain, drains);
+				} else {
+					layers [i].InitTiles ();
+				}
 			}
 
-			MakeLayerSpecial (layers [0], Tile.Kind.Source, sources);
-			MakeLayerSpecial (layers [layers.Length - 1], Tile.Kind.Drain, drains);
-				
 			connections = new List<Connection> ();
 		}
 
-		void MakeLayerSpecial (Layer layer, Tile.Kind kind, int count)
+		List<Tile> Tiles ()
 		{
-			layer.locked = true;
+			List<Tile> tiles = new List<Tile> ();
 
-			for (int i = 0; i < layer.tiles.Length; i++) {
-				layer.tiles [i] = null;
+			foreach (Layer layer in layers) {
+				for (int i = 0; i < layer.tiles.Length; i += 2) {
+					if (layer.tiles [i] != null) {
+						tiles.Add (layer.tiles [i]);
+					}
+				}
+				for (int i = 1; i < layer.tiles.Length; i += 2) {
+					if (layer.tiles [i] != null) {
+						tiles.Add (layer.tiles [i]);
+					}
+				}
 			}
 
-			byte port = kind == Tile.Kind.Drain ? (byte)0 : (byte)3;
-
-			for (int k = 0; k < count; k++) {
-				int index = (k * 2 + layer.tiles.Length) % layer.tiles.Length;
-				Tile tile = new Tile (layer, index);
-				tile.kind = kind;
-				layer.tiles [index] = tile;
-
-				Joint joint = new Joint (tile);
-				tile.joints = new Joint[1]{ joint };
-				joint.ports = new byte[1]{ port };
-			}
+			return tiles;
 		}
 
 		public void Drain ()
@@ -58,32 +64,29 @@ namespace World
 			//  1,0     1,2     1,4
 			//      1,1     1,3
 			//
-			bool changed = false;
-			foreach (Layer layer in layers) {
-				for (int i = 0; i < layer.tiles.Length; i += 2) {
-					Tile tile = layer.tiles [i];
-					if (tile == null) {
-						continue;
-					}
 
-					foreach (Joint joint in tile.joints) {
-						changed = joint.Update () || changed;
-					}
-				}
-				for (int i = 1; i < layer.tiles.Length; i += 2) {
-					Tile tile = layer.tiles [i];
-					if (tile == null) {
-						continue;
-					}
+			List<Tile> tiles = Tiles ();
 
-					foreach (Joint joint in tile.joints) {
-						changed = joint.Update () || changed;
-					}
+			foreach (Tile tile in tiles) {
+				foreach (Joint joint in tile.joints) {
+					joint.ResetStep ();
 				}
 			}
 
-			if (changed) {
-				// TODO: cache if no changes
+			foreach (Tile tile in tiles) {
+				foreach (Joint joint in tile.joints) {
+					joint.Drain ();
+				}
+			}
+
+			foreach (Tile tile in tiles) {
+				foreach (Joint joint in tile.joints) {
+					if (joint.Step ()) {
+						if (lab != null) {
+							lab.JointChanged (joint);
+						}
+					}
+				}
 			}
 		}
 
@@ -100,7 +103,6 @@ namespace World
 
 					foreach (Joint joint in tile.joints) {
 						joint.drains.Clear ();
-						joint.sources.Clear ();
 					}
 				}
 			}
@@ -156,8 +158,20 @@ namespace World
 			}
 
 			if (changed) {
+				if (lab != null) {
+					// TODO: don't destroy everything when some connection changes
+					foreach (Connection conn in connections) {
+						lab.ConnectionDestroyed (conn);	
+					}
+				}
+
 				connections = conns;
-				// TODO: notify UI
+
+				if (lab != null) {
+					foreach (Connection conn in connections) {
+						lab.ConnectionCreated (conn);	
+					}
+				}
 			}
 		}
 
@@ -175,7 +189,6 @@ namespace World
 
 			conns.Add (new Connection (source, sourcePort, drain, drainPort));
 			source.drains.Add (drain);
-			drain.sources.Add (source);
 		}
 	}
 
@@ -191,10 +204,50 @@ namespace World
 		{
 			this.wall = wall;
 			this.index = index;
-			tiles = new Tile[tileCount];
+			this.tiles = new Tile[tileCount];
+		}
+
+		public void InitTiles ()
+		{
 			for (int i = 0; i < tiles.Length; i++) {
 				tiles [i] = new Tile (this, i);
+				if (wall.lab != null) {
+					wall.lab.TileCreated (tiles [i]);
+				}
 			}
+		}
+
+		public void InitLocked (Tile.Kind kind, int count)
+		{
+			locked = true;
+
+			byte port = kind == Tile.Kind.Drain ? (byte)0 : (byte)3;
+			for (int k = 0; k < count; k++) {
+				int index = (k * 2 + tiles.Length) % tiles.Length;
+				Tile tile = new Tile (this, index);
+				tile.kind = kind;
+
+				Joint joint = new Joint (tile);
+				tile.joints = new Joint[1]{ joint };
+				joint.ports = new byte[1]{ port };
+
+				tiles [index] = tile;
+
+				if (wall.lab != null) {
+					wall.lab.TileCreated (tile);
+				}
+			}
+		}
+
+		public void Connect ()
+		{
+
+
+		}
+
+		public void Disconnect ()
+		{
+
 		}
 
 		public Tile At (int i)
@@ -247,13 +300,18 @@ namespace World
 		// update used ports list
 		public void UpdateCrossReference ()
 		{
-			for (int i = 0; i < this.ports.Length; i++) {
-				this.ports [i] = null;
+			for (int i = 0; i < ports.Length; i++) {
+				ports [i] = null;
 			}
-			for (int i = 0; i < this.joints.Length; i++) {
-				for (int k = 0; k < this.joints [i].ports.Length; k++) {
-					this.ports [this.joints [i].ports [k]] = this.joints [i];
+
+			for (int i = 0; i < joints.Length; i++) {
+				for (int k = 0; k < joints [i].ports.Length; k++) {
+					ports [joints [i].ports [k]] = joints [i];
 				}
+			}
+
+			if (layer.wall.lab != null) {
+				layer.wall.lab.TileChanged (this);
 			}
 		}
 
@@ -275,36 +333,37 @@ namespace World
 		public Tile tile;
 		public byte[] ports = new byte[0];
 
-		public List<Joint> sources = new List<Joint> ();
 		public List<Joint> drains = new List<Joint> ();
 
 		public Liquid liquid = new Liquid ();
+		public Liquid nextLiquid = new Liquid ();
 
 		public Joint (Tile tile)
 		{
 			this.tile = tile;
 		}
 
-		public bool Update ()
+		public void ResetStep ()
 		{
-			if (sources.Count == 0) {
-				return false;
+			this.nextLiquid = new Liquid ();
+		}
+
+		public void Drain ()
+		{
+			foreach (Joint drain in drains) {
+				// use nextLiquid to immediate flow
+				drain.nextLiquid = drain.nextLiquid.Mix (this.liquid);
+			}
+		}
+
+		public bool Step ()
+		{
+			if (!liquid.Equals (nextLiquid)) {
+				liquid = nextLiquid;
+				return true;
 			}
 
-			Liquid next = new Liquid ();
-			foreach (Joint source in sources) {
-				next = next.Mix (source.liquid);
-			}
-
-			if (next.Equals (liquid)) {
-				return false;
-			}
-
-			liquid = next;
-
-			// TODO: notify changed
-
-			return true;
+			return false;
 		}
 
 		override public string ToString ()
