@@ -20,11 +20,18 @@ public class Pipe : MonoBehaviour
 	void Update ()
 	{
 		// TODO: fix localRotation
+		transform.localScale = new Vector3 (lab.TileRadius, lab.TileRadius, lab.TileRadius);
+		float angle = TargetAngle ();
+		transform.localRotation = Quaternion.Euler (0f, angle * Mathf.Rad2Deg, 0f);
 		transform.localPosition = TargetPosition ();
+
+		/*
 		foreach (World.Joint joint in tile.joints) {
 			GameObject obj = joint.gameObject;
+
 			GenerateJoint genJoint = obj.GetComponent<GenerateJoint> ();
 			//TODO: set color to obj
+
 			foreach (GameObject sphere in genJoint.spheres) {
 				MeshRenderer renderer = sphere.GetComponent<MeshRenderer> ();
 				renderer.material.color = joint.liquid.Color ();
@@ -34,6 +41,7 @@ public class Pipe : MonoBehaviour
 				renderer.material.color = joint.liquid.Color ();
 			}
 		}
+		*/
 	}
 
 	public void Init (Lab lab, World.Wall wall, World.Tile tile)
@@ -42,35 +50,32 @@ public class Pipe : MonoBehaviour
 		this.wall = wall;
 		this.tile = tile;
 
-		transform.localScale = new Vector3 (lab.TileRadius, lab.TileRadius, lab.TileRadius);
-		// TODO: fix localRotation
-		transform.localRotation = Quaternion.Euler (90, Mathf.Rad2Deg * Angle () + 90f, 0);
-		transform.localPosition = TargetPosition ();
+		Update ();
 	}
 
-	float Angle ()
+	public void SetOffset (float offset)
+	{
+		this.angleOffset = offset;
+		Init (lab, wall, tile);
+	}
+
+	float FixedAngle ()
 	{
 		return tile.index * 2f * Mathf.PI / tile.layer.tiles.Length;
+	}
+
+	float TargetAngle ()
+	{
+		return FixedAngle () + angleOffset;
 	}
 
 	Vector3 TargetPosition ()
 	{
 		Vector3 position = new Vector3 ();
+		float angle = TargetAngle ();
 
-		int n = tile.layer.tiles.Length;
-
-		float anglePerTile = 2f * Mathf.PI / (float)n;
-
-		float fixedAngle = (float)tile.index * anglePerTile;
-		float smoothAngle = fixedAngle + angleOffset;
-
-		// int offsetIndex = (int)Mathf.Round (angleOffset / anglePerTile);
-		// float snapAngle = (float)(tile.index + offsetIndex) * anglePerTile;
-
-		float angle = smoothAngle + Mathf.PI * 0.25f;
-
-		position.x = lab.WallRadius * Mathf.Cos (angle);
-		position.z = -lab.WallRadius * Mathf.Sin (angle);
+		position.z = -lab.WallRadius * Mathf.Cos (angle);
+		position.x = -lab.WallRadius * Mathf.Sin (angle);
 
 		float dy = Mathf.Cos (angle * tile.layer.tiles.Length * 0.5f) * 0.5f * 0.5f;
 		position.y = -((float)tile.layer.index + dy) * lab.TileRadius * lab.YSpacing;

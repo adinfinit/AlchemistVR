@@ -14,100 +14,11 @@ public class Lab : MonoBehaviour
 	public float TileRadius = 0.2f;
 	public float YSpacing = 1.75f;
 
-	public GameObject controllerLeft;
-	public GameObject controllerRight;
-
-	private bool leftControllerDragging;
-	private bool rightControllerDragging;
-
 	Generators generators;
-
-	Ray selectionStartRay;
-	List<Pipe> selection = new List<Pipe> ();
-
 
 	void Start ()
 	{
 		generators = GetComponent<Generators> ();
-		CreateLevel ();
-	}
-
-
-	static public GameObject getChildGameObjectTag (GameObject fromGameObject, string withName)
-	{
-		//Author: Isaac Dart, June-13.
-		Transform[] ts = fromGameObject.transform.GetComponentsInChildren <Transform> ();
-		foreach (Transform t in ts)
-			if (t.gameObject.tag == withName)
-				return t.gameObject;
-		return null;
-	}
-
-	public void HandleControllerPressRight ()
-	{
-		selection.Clear ();
-		Debug.Log ("Handling right controller press in LAB");
-
-		Pipe targetPipe = null;
-		// selectionStartRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-		selectionStartRay = new Ray (controllerRight.transform.position, controllerRight.transform.forward);
-		foreach (RaycastHit hit in Physics.RaycastAll(selectionStartRay)) {
-			targetPipe = hit.collider.GetComponent<Pipe> ();
-			if (targetPipe != null) {
-				break;
-			}
-		}
-
-		if (targetPipe != null) {
-			rightControllerDragging = true;
-			Wall.DisconnectLayer (targetPipe.tile.layer);
-			foreach (World.Tile tile in targetPipe.tile.layer.tiles) {
-				if (tile == null) {
-					continue;
-				}
-
-				selection.Add ((Pipe)tile.visual);
-			}
-		}
-	}
-
-	public void HandleControllerUnpressRight ()
-	{
-		Debug.Log ("Handling right controller unpress in LAB");
-		if (Input.GetMouseButtonUp (0)) { // release
-			foreach (Pipe pipe in selection) {
-				pipe.angleOffset = 0f;
-			}
-			selection.Clear ();
-			rightControllerDragging = false;
-		}
-	}
-
-	void Update ()
-	{
-		if (controllerLeft == null) {
-			controllerLeft = GameObject.FindGameObjectWithTag ("LeftController");
-		}
-        
-		if (controllerRight == null) {
-			controllerRight = GameObject.FindGameObjectWithTag ("RightController");
-		}
-
-		if (rightControllerDragging) { // press
-			Ray currentRay = new Ray (controllerRight.transform.position, controllerRight.transform.forward);
-
-			Vector2 start = new Vector2 (selectionStartRay.direction.x, selectionStartRay.direction.z);
-			Vector2 current = new Vector2 (currentRay.direction.x, currentRay.direction.z);
-
-			float rotation = Vector2.SignedAngle (current, start) * Mathf.Deg2Rad;
-			foreach (Pipe pipe in selection) {
-				pipe.angleOffset = rotation;
-			}
-		}
-	}
-
-	void CreateLevel ()
-	{
 		Container = new GameObject ();
 		Container.transform.name = "Wall";
 		Container.transform.parent = transform;
@@ -118,6 +29,130 @@ public class Lab : MonoBehaviour
 		Wall = new World.Wall (this, Layers + 2, Tiles, 6, 6);
 		World.Randomize.Wall (Wall);
 	}
+
+
+	Ray SelectionStartRay;
+	Ray SelectionCurrentRay;
+	List<World.Tile> Selection = new List<World.Tile> ();
+
+	bool Select (Ray ray)
+	{
+		Selection.Clear ();
+		SelectionStartRay = ray;
+		SelectionCurrentRay = ray;
+
+		Pipe target = null;
+		foreach (RaycastHit hit in Physics.RaycastAll(SelectionStartRay)) {
+			target = hit.collider.GetComponent<Pipe> ();
+			if (target != null) {
+				break;
+			}
+		}
+
+		if (target != null) {
+			foreach (World.Tile tile in target.tile.layer.tiles) {
+				Selection.Add (tile);
+			}
+			Wall.DisconnectTiles (Selection);
+		}
+		return Selection.Count > 0;
+	}
+
+	void SelectUpdate (Ray ray)
+	{
+		SelectionCurrentRay = ray;
+
+		Vector2 start = new Vector2 (SelectionStartRay.direction.x, SelectionStartRay.direction.z);
+		Vector2 current = new Vector2 (SelectionCurrentRay.direction.x, SelectionCurrentRay.direction.z);
+
+		float rotation = Vector2.SignedAngle (current, start) * Mathf.Deg2Rad;
+		foreach (World.Tile tile in Selection) {
+			Pipe pipe = (Pipe)tile.visual;
+			pipe.SetOffset (rotation);
+		}
+	}
+
+	void SelectFinish ()
+	{
+		foreach (World.Tile tile in Selection) {
+			Pipe pipe = (Pipe)tile.visual;
+			pipe.SetOffset (0f);
+		}
+
+		Wall.ConnectTiles (Selection);
+		Selection.Clear ();
+	}
+
+	void Update ()
+	{
+		UpdateMouseController ();
+		UpdateVive ();
+	}
+
+	#region Mouse
+
+	void UpdateMouseController ()
+	{
+		if (Input.GetMouseButtonDown (0)) {
+			Select (Camera.main.ScreenPointToRay (Input.mousePosition));
+		}
+		if (Input.GetMouseButton (0)) {
+			SelectUpdate (Camera.main.ScreenPointToRay (Input.mousePosition));
+		}
+		if (Input.GetMouseButtonUp (0)) {
+			SelectFinish ();
+		}
+	}
+
+	#endregion
+
+	#region Vive
+
+	public bool ViveTriedConnect = false;
+	public GameObject ViveLeft = null;
+	public GameObject ViveRight = null;
+
+	public bool ViveLeftDown = false;
+	public bool ViveRightDown = false;
+
+	void UpdateVive ()
+	{
+		if (!ViveTriedConnect) {
+			ViveTriedConnect = true;
+			try {
+				ViveLeft = GameObject.FindGameObjectWithTag ("LeftController");
+				ViveRight = GameObject.FindGameObjectWithTag ("RightController");
+			} catch {
+			}
+		}
+
+		if (ViveLeft == null && ViveRight == null) {
+			return;
+		}
+
+		if (ViveRightDown) {
+			SelectUpdate (new Ray (ViveRight.transform.position, ViveRight.transform.forward));
+		}
+		if (ViveLeftDown) {
+			SelectUpdate (new Ray (ViveRight.transform.position, ViveRight.transform.forward));
+		}
+	}
+
+	public void HandleControllerPressRight ()
+	{
+		ViveRightDown = true;
+		Select (new Ray (ViveRight.transform.position, ViveRight.transform.forward));
+	}
+
+	public void HandleControllerUnpressRight ()
+	{
+		ViveRightDown = false;
+		SelectFinish ();
+	}
+
+	#endregion
+
+	#region Callbacks
 
 	public void TileCreated (World.Tile tile)
 	{
@@ -132,26 +167,35 @@ public class Lab : MonoBehaviour
 		tile.visual = pipe;
 		pipe.Init (this, Wall, tile);
 		*/
-		GameObject tileObject = generators.newTileGameObject (tile);
+
+		GameObject tileObject = Generators.CreateTile (tile);
+		//GameObject tileObject = generators.newTileGameObject (tile);
+		tileObject.transform.parent = Container.transform;
 		tileObject.AddComponent<SphereCollider> ();
+
 		Pipe pipe = tileObject.AddComponent<Pipe> ();
 		pipe.Init (this, Wall, tile);
+		tile.visual = pipe;
 	}
 
 	public void TileChanged (World.Tile tile)
 	{
-		
+		TileDestroyed (tile);
+		TileCreated (tile);
 	}
 
 	public void TileDestroyed (World.Tile tile)
 	{
-		Destroy (tile.visual);
+		Pipe pipe = (Pipe)tile.visual;
+		Destroy (pipe.gameObject);
 		tile.visual = null;
 	}
 
 	public void ConnectionCreated (World.Connection conn)
 	{
+		return;
 		GameObject connObject = generators.newConnectionGameObject (conn);
+		connObject.transform.parent = Container.transform;
 		/*
 		GameObject sphere = GameObject.CreatePrimitive (PrimitiveType.Sphere);
 		sphere.transform.name = conn.ToString ();
@@ -182,4 +226,6 @@ public class Lab : MonoBehaviour
 		Destroy (conn.visual);
 		conn.visual = null;
 	}
+
+	#endregion
 }

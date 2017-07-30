@@ -17,6 +17,7 @@ public class GenerateJoint : MonoBehaviour
 		Vector3 pos = p1 + (offset / 2);
 
 		GameObject cyl = Instantiate (cylinder, Vector3.zero, Quaternion.identity);
+		cyl.transform.parent = transform;
 		cyl.transform.position = pos;
 
 		Vector3 scale = new Vector3 (1, offset.magnitude / 2.0f, 1);
