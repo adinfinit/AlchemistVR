@@ -39,14 +39,12 @@ public class PlayerController : MonoBehaviour
 
         _controller.TriggerClicked += HandleTriggerClicked;
         _controller.TriggerUnclicked += HandleTriggerUnclicked;
-        _controller.PadClicked += HandlePadClicked;
     }
 
     private void OnDisable()
     {
         _controller.TriggerClicked -= HandleTriggerClicked;
         _controller.TriggerUnclicked -= HandleTriggerUnclicked;
-        _controller.PadClicked -= HandlePadClicked;
     }
 
 
