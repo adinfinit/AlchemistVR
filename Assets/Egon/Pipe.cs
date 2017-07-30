@@ -25,23 +25,15 @@ public class Pipe : MonoBehaviour
 		transform.localRotation = Quaternion.Euler (0f, angle * Mathf.Rad2Deg, 0f);
 		transform.localPosition = TargetPosition ();
 
-		/*
+
 		foreach (World.Joint joint in tile.joints) {
 			GameObject obj = joint.gameObject;
 
-			GenerateJoint genJoint = obj.GetComponent<GenerateJoint> ();
-			//TODO: set color to obj
-
-			foreach (GameObject sphere in genJoint.spheres) {
-				MeshRenderer renderer = sphere.GetComponent<MeshRenderer> ();
-				renderer.material.color = joint.liquid.Color ();
-			}
-			foreach (GameObject cylinder in genJoint.cylinders) {
-				MeshRenderer renderer = cylinder.GetComponent<MeshRenderer> ();
-				renderer.material.color = joint.liquid.Color ();
+			foreach (MeshRenderer mr in obj.GetComponentsInChildren<MeshRenderer>()) {
+				mr.material.color = joint.liquid.Color ();
 			}
 		}
-		*/
+
 	}
 
 	public void Init (Lab lab, World.Wall wall, World.Tile tile)
