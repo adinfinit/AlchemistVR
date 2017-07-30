@@ -285,6 +285,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1683774800}
   - component: {fileID: 1683774799}
+  - component: {fileID: 1683774801}
   m_Layer: 0
   m_Name: Lab
   m_TagString: Untagged
@@ -306,8 +307,13 @@ MonoBehaviour:
   Layers: 5
   Tiles: 24
   WallRadius: 1.25
-  TileRadius: 0.2
+  TileRadius: 0.15
   YSpacing: 1.75
+  ViveTriedConnect: 0
+  ViveLeft: {fileID: 0}
+  ViveRight: {fileID: 0}
+  ViveLeftDown: 0
+  ViveRightDown: 0
 --- !u!4 &1683774800
 Transform:
   m_ObjectHideFlags: 0
@@ -321,6 +327,19 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1683774801
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1683774798}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7982ef2bfc20c4f4481cc9f0ad9f574c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  TilePrefab: {fileID: 1618191494564808, guid: 768f413093c586242878318182139bfc, type: 2}
+  PipePrefab: {fileID: 1334893960249996, guid: 562cb00213f875f4d8caadc33278b6e3, type: 2}
 --- !u!1 &1842962968
 GameObject:
   m_ObjectHideFlags: 0

@@ -42,7 +42,7 @@ public class Generators : MonoBehaviour
 		foreach (byte port in joint.ports) {
 			Vector3 portPosition = LocalPort (port);
 
-			GameObject line = CylinderBetweenPoints (portPosition, sphere.transform.localPosition, 0.2f);
+			GameObject line = CylinderBetweenPoints (portPosition, sphere.transform.localPosition, 0.3f);
 			line.name = "Port " + port;
 			line.transform.SetParent (joinObj.transform, false);
 		}
@@ -83,11 +83,14 @@ public class Generators : MonoBehaviour
 		Vector3 sourcePortWorld = (Vector3)sourceX.position + (Vector3)(sourceX.localToWorldMatrix * LocalPort (conn.sourcePort));
 		Vector3 drainPortWorld = (Vector3)drainX.position + (Vector3)(drainX.localToWorldMatrix * LocalPort (conn.drainPort));
 
-		//GameObject weld = CylinderBetweenPoints (sourcePortWorld, drainPortWorld, 0.05f);
-		GameObject weld = CylinderBetweenPoints (sourceX.position, drainX.position, 0.1f);
+		Vector3 offset1 = LocalPort (conn.sourcePort);
+		Vector3 offset2 = LocalPort (conn.drainPort);
+
+		GameObject weld = CapsuleBetweenPoints (sourcePortWorld, drainPortWorld, 0.3f * 0.15f);
+		//GameObject weld = CylinderBetweenPoints (sourceX.position + offset1, drainX.position + offset2, 0.1f);
 		weld.name = "Weld";
 		weld.GetComponent<MeshRenderer> ().material.color = Color.red;
-		weld.transform.parent = connObj.transform;
+		weld.transform.SetParent (connObj.transform, false);
 
 		return connObj;
 	}
@@ -101,6 +104,21 @@ public class Generators : MonoBehaviour
 		cylinder.transform.position = pos;
 
 		Vector3 scale = new Vector3 (radius, offset.magnitude / 2.0f, radius);
+		cylinder.transform.up = offset;
+		cylinder.transform.localScale = scale;
+
+		return cylinder;
+	}
+
+	public static GameObject CapsuleBetweenPoints (Vector3 p1, Vector3 p2, float radius)
+	{
+		Vector3 offset = p2 - p1;
+		Vector3 pos = p1 + (offset / 2);
+
+		GameObject cylinder = GameObject.CreatePrimitive (PrimitiveType.Capsule);
+		cylinder.transform.position = pos;
+
+		Vector3 scale = new Vector3 (radius, offset.magnitude / 2.0f + 0.02f, radius);
 		cylinder.transform.up = offset;
 		cylinder.transform.localScale = scale;
 
