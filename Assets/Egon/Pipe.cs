@@ -25,10 +25,10 @@ public class Pipe : MonoBehaviour
 		transform.localRotation = Quaternion.Euler (0f, angle * Mathf.Rad2Deg, 0f);
 		transform.localPosition = TargetPosition ();
 
-		GameObject indicator = transform.Find ("Cube").gameObject;
-		if (tile.joints.Length > 0) {
-			indicator.GetComponent<MeshRenderer> ().material.color = tile.joints [0].nextLiquid.Color ();
-		}
+		//GameObject indicator = transform.Find ("Cube").gameObject;
+		//if (tile.joints.Length > 0) {
+		//	indicator.GetComponent<MeshRenderer> ().material.color = tile.joints [0].nextLiquid.Color ();
+		//}
 
 		foreach (World.Joint joint in tile.joints) {
 			GameObject obj = joint.gameObject;

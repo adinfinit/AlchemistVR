@@ -21,9 +21,9 @@ public class Generators : MonoBehaviour
 		tile.visual = tileObj;
 		tileObj.name = tile.ToString ();
 
-		GameObject box = GameObject.CreatePrimitive (PrimitiveType.Cube);
-		box.transform.localScale = new Vector3 (1f, 1f, 0.1f);
-		box.transform.SetParent (tileObj.transform, false);
+		// GameObject box = GameObject.CreatePrimitive (PrimitiveType.Cube);
+		// box.transform.localScale = new Vector3 (1f, 1f, 0.1f);
+		// box.transform.SetParent (tileObj.transform, false);
 
 		return tileObj;
 	}
