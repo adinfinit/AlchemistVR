@@ -95,73 +95,7 @@ namespace World
 		// update connections and joints
 		public void UpdateConnections ()
 		{
-			if (lab != null) {
-				foreach (Connection conn in connections) {
-					lab.ConnectionDestroyed (conn);	
-				}
-			}
-
-			connections.Clear ();
-
-			foreach (Tile tile in Tiles()) {
-				foreach (Joint joint in tile.joints) {
-					joint.drains.Clear ();
-				}
-			}
-
-			foreach (Layer layer in layers) {
-				ConnectLayer (layer);
-			}
-		}
-
-		public void ConnectLayer (Layer layer)
-		{
-			Layer layerBottom = null;
-			if (layer.index + 1 < layers.Length) {
-				layerBottom = layers [layer.index + 1];
-			}
-
-			List<Connection> tops = new List<Connection> ();
-			List<Connection> bottoms = new List<Connection> ();
-
-			foreach (Tile tile in layer.tiles) {
-				if (tile == null) {
-					continue;
-				}
-
-				Tile left = null;
-				Tile bottom = null;
-				Tile right = null;
-
-				if (layerBottom != null) {
-					bottom = layerBottom.At (tile.index);
-				}
-
-				Layer layerSide = tile.IsOffset () ? layerBottom : layer;
-				if (layerSide != null) {
-					left = layerSide.At (tile.index - 1);
-					right = layerSide.At (tile.index + 1);
-				}
-
-				List<Connection> target = tile.IsOffset () ? bottoms : tops;
-				TryConnect (target, tile, 3, bottom, 0);
-				TryConnect (target, tile, 4, left, 1);
-				TryConnect (target, tile, 2, right, 5);
-			}
-
-			foreach (Connection conn in tops) {
-				connections.Add (conn);
-				if (lab != null) {
-					lab.ConnectionCreated (conn);
-				}
-			}
-
-			foreach (Connection conn in bottoms) {
-				connections.Add (conn);
-				if (lab != null) {
-					lab.ConnectionCreated (conn);
-				}
-			}
+			ConnectTiles (Tiles ());
 		}
 
 		public void ConnectTiles (List<Tile> tiles)
@@ -189,25 +123,6 @@ namespace World
 					}
 				}
 			}
-		}
-
-		public static bool TryConnect (List<Connection> conns, Tile sourceTile, byte sourcePort, Tile drainTile, byte drainPort)
-		{
-			if (sourceTile == null || drainTile == null) {
-				return false;
-			}
-
-			Joint source = sourceTile.ports [sourcePort];
-			Joint drain = drainTile.ports [drainPort];
-			if (source == null || drain == null) {
-				return false;
-			}
-
-			Connection conn = new Connection (source, sourcePort, drain, drainPort);
-			conns.Add (conn);
-			source.drains.Add (drain);
-
-			return true;
 		}
 
 		public Tile At (int layer, int tile)
@@ -259,7 +174,10 @@ namespace World
 				Joint joint = new Joint (tile);
 				tile.joints = new Joint[1]{ joint };
 				joint.ports = new byte[1]{ port };
+				tile.UpdateCrossReference ();
 
+				int rand = Random.Range (0, 2);
+				joint.liquid = new Liquid (rand == 0, rand == 1, rand == 2);
 				tiles [index] = tile;
 
 				if (wall.lab != null) {
@@ -469,10 +387,17 @@ namespace World
 		public void ResetStep ()
 		{
 			this.nextLiquid = new Liquid ();
+			if (tile.kind == Tile.Kind.Source) {
+				this.nextLiquid = this.liquid;
+			}
 		}
 
 		public void Drain ()
 		{
+			if (tile.kind == Tile.Kind.Source) {
+				return;
+			}
+
 			foreach (Joint drain in drains) {
 				// use nextLiquid to immediate flow
 				drain.nextLiquid = drain.nextLiquid.Mix (this.liquid);
@@ -481,6 +406,10 @@ namespace World
 
 		public bool Step ()
 		{
+			if (tile.kind == Tile.Kind.Source) {
+				return false;
+			}
+
 			if (!liquid.Equals (nextLiquid)) {
 				liquid = nextLiquid;
 				return true;

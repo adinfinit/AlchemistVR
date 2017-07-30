@@ -28,8 +28,14 @@ public class Lab : MonoBehaviour
 
 		Wall = new World.Wall (this, Layers + 2, Tiles, 6, 6);
 		World.Randomize.Wall (Wall);
+
+		InvokeRepeating ("CallDrain", 5, 2);
 	}
 
+	void CallDrain ()
+	{
+		Wall.Drain ();
+	}
 
 	Ray SelectionStartRay;
 	Ray SelectionCurrentRay;
@@ -53,6 +59,11 @@ public class Lab : MonoBehaviour
 
 		if (target != null) {
 			SelectedLayer = target.tile.layer;
+			if (SelectedLayer.locked) {
+				SelectedLayer = null;
+				return false;
+			}
+
 			foreach (World.Tile tile in SelectedLayer.tiles) {
 				Selection.Add (tile);
 			}
@@ -190,6 +201,10 @@ public class Lab : MonoBehaviour
 
 	public void TileDestroyed (World.Tile tile)
 	{
+		if (tile.visual == null) {
+			return;
+		}
+
 		Pipe pipe = (Pipe)tile.visual;
 		Destroy (pipe.gameObject);
 		tile.visual = null;
