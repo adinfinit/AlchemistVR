@@ -548,9 +548,9 @@ namespace World
 				n = 0;
 			} else if (rand < 1.5f) {
 				n = 1;
-			} else if (rand < 6f) {
+			} else if (rand < 8f) {
 				n = 2;
-			} else if (rand > 6f) {
+			} else if (rand > 8f) {
 				n = 3;
 			} 
 
