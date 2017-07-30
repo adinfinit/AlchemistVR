@@ -399,7 +399,6 @@ namespace World
 
 		public void Disconnect ()
 		{
-			List<Connection> before = new List<Connection> ();
 			for (int i = layer.wall.connections.Count - 1; i >= 0; i--) {
 				Connection conn = layer.wall.connections [i];
 				if (conn.drain.tile == this || conn.source.tile == this) {
