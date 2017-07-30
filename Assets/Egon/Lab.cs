@@ -23,7 +23,7 @@ public class Lab : MonoBehaviour
 	bool inputIsDown = false;
 
 	Ray selectionStartRay;
-	List<Pipe> selection = new List<Pipe> ();
+	List<World.Tile> selection = new List<World.Tile> ();
 
 	void Update ()
 	{
@@ -43,14 +43,13 @@ public class Lab : MonoBehaviour
 			}
 
 			if (targetPipe != null) {
-				Wall.DisconnectLayer (targetPipe.tile.layer);
-
 				foreach (World.Tile tile in targetPipe.tile.layer.tiles) {
 					if (tile == null) {
 						continue;
 					}
-					selection.Add ((Pipe)tile.visual);
+					selection.Add (tile);
 				}
+				Wall.DisconnectTiles (selection);
 			}
 		}
 
@@ -61,15 +60,19 @@ public class Lab : MonoBehaviour
 			Vector2 current = new Vector2 (currentRay.direction.x, currentRay.direction.z);
 			 
 			float rotation = Vector2.SignedAngle (current, start) * Mathf.Deg2Rad;
-			foreach (Pipe pipe in selection) {
-				pipe.angleOffset = rotation;
+			foreach (World.Tile tile in selection) {
+				Pipe pipe = (Pipe)tile.visual;
+				pipe.SetOffset (rotation);
 			}
 		}
 
 		if (Input.GetMouseButtonUp (0)) { // release
-			foreach (Pipe pipe in selection) {
-				pipe.angleOffset = 0f;
+			foreach (World.Tile tile in selection) {
+				Pipe pipe = (Pipe)tile.visual;
+				pipe.SetOffset (0f);
 			}
+
+			Wall.ConnectTiles (selection);
 			selection.Clear ();
 		}
 	}

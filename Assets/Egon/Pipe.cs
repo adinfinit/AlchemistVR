@@ -48,6 +48,12 @@ public class Pipe : MonoBehaviour
 		transform.localPosition = TargetPosition ();
 	}
 
+	public void SetOffset (float offset)
+	{
+		this.angleOffset = offset;
+		Init (lab, wall, tile);
+	}
+
 	float Angle ()
 	{
 		return tile.index * 2f * Mathf.PI / tile.layer.tiles.Length;

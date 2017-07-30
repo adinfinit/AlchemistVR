@@ -164,16 +164,17 @@ namespace World
 			}
 		}
 
+		public void ConnectTiles (List<Tile> tiles)
+		{
+			foreach (Tile tile in tiles) {
+				tile.Connect ();
+			}
+		}
+
 		public void DisconnectTiles (List<Tile> tiles)
 		{
-			for (int i = connections.Count - 1; i >= 0; i--) {
-				Connection conn = connections [i];
-				if (tiles.Contains (conn.source.tile) || tiles.Contains (conn.drain.tile)) {
-					connections.RemoveAt (i);
-					if (lab != null) {
-						lab.ConnectionDestroyed (conn);
-					}
-				}
+			foreach (Tile tile in tiles) {
+				tile.Disconnect ();
 			}
 		}
 
@@ -207,6 +208,16 @@ namespace World
 			source.drains.Add (drain);
 
 			return true;
+		}
+
+		public Tile At (int layer, int tile)
+		{
+			if (layer < 0 || layer >= layers.Length) {
+				return null;
+			}
+
+			Layer lay = layers [layer];
+			return lay.At (tile);
 		}
 	}
 
@@ -307,6 +318,97 @@ namespace World
 		{
 			this.layer = layer;
 			this.index = index;
+		}
+
+		public void Connect ()
+		{
+			List<Connection> before = new List<Connection> ();
+			foreach (Connection conn in layer.wall.connections) {
+				if (conn.drain.tile == this || conn.source.tile == this) {
+					before.Add (conn);
+				}
+			}
+
+			Tile topLeft, top, topRight, botLeft, bot, botRight;
+
+			GetNeighbours (out topLeft, out top, out topRight, out botLeft, out bot, out botRight);
+
+			Reconnect (before, topLeft, 2, this, 5);
+			Reconnect (before, top, 3, this, 0);
+			Reconnect (before, topRight, 4, this, 1);
+
+			Reconnect (before, this, 2, botRight, 5);
+			Reconnect (before, this, 3, bot, 0);
+			Reconnect (before, this, 4, botLeft, 1);
+
+			foreach (Connection conn in before) {
+				layer.wall.connections.Remove (conn);
+				if (layer.wall.lab != null) {
+					layer.wall.lab.ConnectionDestroyed (conn);
+				}
+			}
+		}
+
+		void Reconnect (List<Connection> before,
+		                Tile sourceTile, byte sourcePort,
+		                Tile drainTile, byte drainPort
+		)
+		{
+			if (sourceTile == null || drainTile == null) {
+				return;
+			}
+
+			Joint source = sourceTile.ports [sourcePort];
+			Joint drain = drainTile.ports [drainPort];
+			if (source == null || drain == null) {
+				return;
+			}
+
+			Connection conn = new Connection (source, sourcePort, drain, drainPort);
+			if (before.Contains (conn)) {
+				before.Remove (conn);
+			} else {
+				layer.wall.connections.Add (conn);
+				if (layer.wall.lab != null) {
+					layer.wall.lab.ConnectionCreated (conn);
+				}
+			}
+		}
+
+
+		void GetNeighbours (
+			out Tile topLeft, out Tile top, out Tile topRight,
+			out Tile botLeft, out Tile bot, out Tile botRight
+		)
+		{
+			top = layer.wall.At (layer.index - 1, index);
+			bot = layer.wall.At (layer.index + 1, index);
+
+			if (IsOffset ()) {
+				topLeft = layer.wall.At (layer.index, index - 1);
+				topRight = layer.wall.At (layer.index, index + 1);
+				botLeft = layer.wall.At (layer.index + 1, index - 1);
+				botRight = layer.wall.At (layer.index + 1, index + 1);
+			} else {
+				topLeft = layer.wall.At (layer.index - 1, index - 1);
+				topRight = layer.wall.At (layer.index - 1, index + 1);
+				botLeft = layer.wall.At (layer.index, index - 1);
+				botRight = layer.wall.At (layer.index, index + 1);
+			}
+		}
+
+		public void Disconnect ()
+		{
+			List<Connection> before = new List<Connection> ();
+			for (int i = layer.wall.connections.Count - 1; i >= 0; i--) {
+				Connection conn = layer.wall.connections [i];
+				if (conn.drain.tile == this || conn.source.tile == this) {
+					layer.wall.connections.RemoveAt (i);
+					if (layer.wall.lab != null) {
+						layer.wall.lab.ConnectionDestroyed (conn);
+					}
+				}
+			}
 		}
 
 		// update used ports list
