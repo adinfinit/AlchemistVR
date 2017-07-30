@@ -48,7 +48,7 @@ public class Lab : MonoBehaviour
 						continue;
 					}
 
-					selection.Add (tile.visual);
+					selection.Add ((Pipe)tile.visual);
 				}
 			}
 		}
@@ -113,8 +113,10 @@ public class Lab : MonoBehaviour
 			sphere.transform.name = conn.ToString ();
 			sphere.transform.parent = container.transform;
 
-			Vector3 source = conn.source.tile.visual.transform.position;
-			Vector3 drain = conn.drain.tile.visual.transform.position;
+			Pipe sourcePipe = (Pipe)conn.source.tile.visual;
+			Vector3 source = sourcePipe.transform.position;
+			Pipe drainPipe = (Pipe)(conn.drain.tile.visual); 
+			Vector3 drain = drainPipe.transform.position;
 
 			sphere.transform.localScale = new Vector3 (0.1f, 0.1f, 0.1f);
 			sphere.transform.position = (source + drain) * 0.5f;
@@ -124,6 +126,11 @@ public class Lab : MonoBehaviour
 	public void TileCreated (World.Tile tile)
 	{
 
+	}
+
+	public void TileChanged (World.Tile tile)
+	{
+		
 	}
 
 	public void TileDestroyed (World.Tile tile)

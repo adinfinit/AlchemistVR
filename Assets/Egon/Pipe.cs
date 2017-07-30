@@ -29,8 +29,13 @@ public class Pipe : MonoBehaviour
 		this.tile = tile;
 
 		transform.localScale = new Vector3 (lab.TileRadius, lab.TileRadius, lab.TileRadius);
-		transform.localRotation = Quaternion.Euler (90, Mathf.Rad2Deg * tile.Angle () + 90f, 0);
+		transform.localRotation = Quaternion.Euler (90, Mathf.Rad2Deg * Angle () + 90f, 0);
 		transform.localPosition = TargetPosition ();
+	}
+
+	float Angle ()
+	{
+		return tile.index * 2f * Mathf.PI / tile.layer.tiles.Length;
 	}
 
 	Vector3 TargetPosition ()

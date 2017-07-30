@@ -51,7 +51,9 @@ public class PuzzleGenerator : MonoBehaviour
 			TileData tileData = tile.GetComponent<TileData> ();
 
 			World.Tile tile2 = tileData.Tile ();
-			tile.transform.position = new Vector3 (tile2.Angle () * (5 - 2.236f), tile2.Y () * 4, 0);
+			float angle = 2f * Mathf.PI / (float)tile2.layer.tiles.Length;
+			float y = (float)tile2.layer.index + (tile2.IsOffset () ? 0.5f : 0.0f);
+			tile.transform.position = new Vector3 (angle * (5 - 2.236f), y * 4, 0);
 			tile.transform.Rotate (90, 0, 0);
 		}
 

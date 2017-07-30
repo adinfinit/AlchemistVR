@@ -40,6 +40,7 @@ namespace World
 			for (int k = 0; k < count; k++) {
 				int index = (k * 2 + layer.tiles.Length) % layer.tiles.Length;
 				Tile tile = new Tile (layer, index);
+				tile.kind = kind;
 				layer.tiles [index] = tile;
 
 				Joint joint = new Joint (tile);
@@ -226,7 +227,7 @@ namespace World
 			Drain
 		}
 
-		public Pipe visual;
+		public Object visual = null;
 
 		public Layer layer;
 		public Kind kind = Kind.Pipe;
@@ -261,18 +262,6 @@ namespace World
 			return (index & 1) == 1;
 		}
 
-		// Angle is the angular wall-space position
-		public float Angle ()
-		{
-			return (float)Mathf.PI * 2.0f * (float)index / (float)layer.tiles.Length;
-		}
-
-		// Returns Y height in tile units
-		public float Y ()
-		{
-			return (float)layer.index + (IsOffset () ? 0.5f : 0.0f);
-		}
-
 		override public string ToString ()
 		{
 			return "L" + layer.index + "T" + index;
@@ -281,6 +270,8 @@ namespace World
 
 	public class Joint
 	{
+		public GameObject gameObject = null;
+
 		public Tile tile;
 		public byte[] ports = new byte[0];
 
@@ -324,6 +315,8 @@ namespace World
 
 	public class Connection
 	{
+		public GameObject gameObject = null;
+
 		public Joint source, drain;
 		public byte sourcePort, drainPort;
 
