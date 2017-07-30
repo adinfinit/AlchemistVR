@@ -18,7 +18,6 @@ public class Lab : MonoBehaviour
 		CreateLevel ();
 	}
 
-
 	bool inputWasDown = false;
 	bool inputIsDown = false;
 
@@ -80,12 +79,12 @@ public class Lab : MonoBehaviour
 		wall.Randomize ();
 		wall.RandomizeColors ();
 
-		GameObject objects = new GameObject ();
-		objects.transform.name = "Wall";
-		objects.transform.parent = transform;
+		GameObject container = new GameObject ();
+		container.transform.name = "Wall";
+		container.transform.parent = transform;
 
 		float totalHeight = wall.layers.Length * TileRadius * YSpacing;
-		objects.transform.position = new Vector3 (0f, totalHeight, 0f);
+		container.transform.position = new Vector3 (0f, totalHeight, 0f);
 
 		foreach (World.Layer ring in wall.layers) {
 			foreach (World.Tile tile in ring.tiles) {
@@ -94,10 +93,10 @@ public class Lab : MonoBehaviour
 				}
 
 				GameObject sphere = GameObject.CreatePrimitive (PrimitiveType.Sphere);
-				sphere.transform.name = "Pipe_" + tile.layer.index + "_" + tile.index;
-				sphere.transform.parent = objects.transform;
+				sphere.transform.name = tile.ToString ();
+				sphere.transform.parent = container.transform;
 
-				SphereCollider collider = sphere.AddComponent<SphereCollider> ();
+				sphere.AddComponent<SphereCollider> ();
 
 				Pipe pipe = sphere.AddComponent<Pipe> ();
 				tile.visual = pipe;
@@ -109,5 +108,37 @@ public class Lab : MonoBehaviour
 				}
 			}
 		}
+
+		foreach (World.Connection conn in wall.connections) {
+			GameObject sphere = GameObject.CreatePrimitive (PrimitiveType.Sphere);
+			sphere.transform.name = conn.ToString ();
+			sphere.transform.parent = container.transform;
+
+			Vector3 source = conn.source.tile.visual.transform.position;
+			Vector3 drain = conn.drain.tile.visual.transform.position;
+
+			sphere.transform.localScale = new Vector3 (0.1f, 0.1f, 0.1f);
+			sphere.transform.position = (source + drain) * 0.5f;
+		}
+	}
+
+	public void TileCreated (World.Tile tile)
+	{
+
+	}
+
+	public void TileDestroyed (World.Tile tile)
+	{
+
+	}
+
+	public void ConnectionCreated (World.Connection conn)
+	{
+
+	}
+
+	public void ConnectionDestroyed (World.Connection conn)
+	{
+
 	}
 }

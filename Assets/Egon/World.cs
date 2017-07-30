@@ -20,10 +20,32 @@ namespace World
 			for (int i = 0; i < layers.Length; i++) {
 				layers [i] = new Layer (this, i, tileCount);
 			}
-			layers [0].MakeSpecial (sources, 2);
-			layers [layers.Length - 1].MakeSpecial (sources, 0);
 
+			MakeLayerSpecial (layers [0], Tile.Kind.Source, sources);
+			MakeLayerSpecial (layers [layers.Length - 1], Tile.Kind.Drain, drains);
+				
 			connections = new List<Connection> ();
+		}
+
+		void MakeLayerSpecial (Layer layer, Tile.Kind kind, int count)
+		{
+			layer.locked = true;
+
+			for (int i = 0; i < layer.tiles.Length; i++) {
+				layer.tiles [i] = null;
+			}
+
+			byte port = kind == Tile.Kind.Drain ? (byte)0 : (byte)3;
+
+			for (int k = 0; k < count; k++) {
+				int index = (k * 2 + layer.tiles.Length) % layer.tiles.Length;
+				Tile tile = new Tile (layer, index);
+				layer.tiles [index] = tile;
+
+				Joint joint = new Joint (tile);
+				tile.joints = new Joint[1]{ joint };
+				joint.ports = new byte[1]{ port };
+			}
 		}
 
 		public void Drain ()
@@ -177,8 +199,7 @@ namespace World
 	{
 		public Wall wall;
 		public int index;
-		//TODO: use enum instead of flag
-		public bool special = false;
+		public bool locked = false;
 
 		public Tile[] tiles;
 
@@ -189,24 +210,6 @@ namespace World
 			tiles = new Tile[tileCount];
 			for (int i = 0; i < tiles.Length; i++) {
 				tiles [i] = new Tile (this, i);
-			}
-		}
-
-		public void MakeSpecial (int count, byte port)
-		{
-			special = true;
-			for (int i = 0; i < tiles.Length; i++) {
-				tiles [i] = null;
-			}
-
-			for (int k = 0; k < count; k++) {
-				int index = (k * 2 + tiles.Length) % tiles.Length;
-				Tile tile = new Tile (this, index);
-				tiles [index] = tile;
-
-				Joint joint = new Joint (tile);
-				tile.joints = new Joint[1]{ joint };
-				joint.ports = new byte[1]{ port };
 			}
 		}
 
@@ -233,7 +236,7 @@ namespace World
 		// randomize each tile in layer
 		public void Randomize ()
 		{
-			if (special) {
+			if (locked) {
 				return;
 			}
 
@@ -265,7 +268,7 @@ namespace World
 		{
 			Pipe,
 			Source,
-			Potion
+			Drain
 		}
 
 		public Pipe visual;
@@ -301,23 +304,13 @@ namespace World
 		// choose random joints
 		public void Randomize ()
 		{
-			if (kind == Kind.Potion) {
-				
-			} else if (kind == Kind.Source) {
-				
-			}
-
 			int n = Random.Range (1, 3);
 			joints = new Joint[n];
 
 			List<byte> available = new List<byte> ();
-
-			available.Add (0);
-			available.Add (1);
-			available.Add (2);
-			available.Add (3);
-			available.Add (4);
-			available.Add (5);
+			for (byte k = 0; k < 6; k++) {
+				available.Add (k);
+			}
 
 			for (int i = 0; i < joints.Length; i++) {
 				joints [i] = new Joint (this);
@@ -342,6 +335,11 @@ namespace World
 		public float Y ()
 		{
 			return (float)layer.index + (IsOffset () ? 0.5f : 0.0f);
+		}
+
+		override public string ToString ()
+		{
+			return "L" + layer.index + "T" + index;
 		}
 	}
 
@@ -393,6 +391,11 @@ namespace World
 
 			return true;
 		}
+
+		override public string ToString ()
+		{
+			return tile.ToString () + "P" + ports;
+		}
 	}
 
 	public class Connection
@@ -413,6 +416,11 @@ namespace World
 			Connection a = this;
 			return (a.source == b.source) && (a.drain == b.drain) &&
 			(a.sourcePort == b.sourcePort) && (a.drainPort == b.drainPort);
+		}
+
+		override public string ToString ()
+		{
+			return source.tile.ToString () + "P" + sourcePort + "_" + drain.tile.ToString () + "P" + drainPort;
 		}
 	}
 

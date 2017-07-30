@@ -47,7 +47,7 @@ public class Pipe : MonoBehaviour
 		// int offsetIndex = (int)Mathf.Round (angleOffset / anglePerTile);
 		// float snapAngle = (float)(tile.index + offsetIndex) * anglePerTile;
 
-		float angle = fixedAngle + angleOffset + Mathf.PI * 0.25f;
+		float angle = smoothAngle + Mathf.PI * 0.25f;
 
 		position.x = lab.WallRadius * Mathf.Cos (angle);
 		position.z = -lab.WallRadius * Mathf.Sin (angle);
