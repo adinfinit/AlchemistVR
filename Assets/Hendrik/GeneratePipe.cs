@@ -25,7 +25,7 @@ public class GeneratePipe : MonoBehaviour
 
 	// generate the pipe between connection and return it
 	public GameObject Generate (World.Connection conn)
-	{
+	{/*
 		if (conn.source.tile.visual != null) {
 			if (conn.drain.tile.visual != null) {
 
@@ -49,7 +49,7 @@ public class GeneratePipe : MonoBehaviour
 
 				return connection;
 			}
-		}
+		}*/
 		return null;
 	}
 }

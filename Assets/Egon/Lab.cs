@@ -63,6 +63,10 @@ public class Lab : MonoBehaviour
 
 	void SelectUpdate (Ray ray)
 	{
+		if (SelectedLayer == null) {
+			return;
+		}
+
 		SelectionCurrentRay = ray;
 
 		Vector2 start = new Vector2 (SelectionStartRay.direction.x, SelectionStartRay.direction.z);
@@ -77,6 +81,10 @@ public class Lab : MonoBehaviour
 
 	void SelectFinish ()
 	{
+		if (SelectedLayer == null) {
+			return;
+		}
+
 		float anglePerTile = 2f * Mathf.PI / (float)Wall.layers [0].tiles.Length;
 		int offsetIndex = (int)Mathf.Round (SelectionOffset / anglePerTile);
 
@@ -165,20 +173,7 @@ public class Lab : MonoBehaviour
 
 	public void TileCreated (World.Tile tile)
 	{
-		/*
-		GameObject sphere = GameObject.CreatePrimitive (PrimitiveType.Sphere);
-		sphere.transform.name = tile.ToString ();
-		sphere.transform.parent = Container.transform;
-
-		sphere.AddComponent<SphereCollider> ();
-
-		Pipe pipe = sphere.AddComponent<Pipe> ();
-		tile.visual = pipe;
-		pipe.Init (this, Wall, tile);
-		*/
-
 		GameObject tileObject = Generators.CreateTile (tile);
-		//GameObject tileObject = generators.newTileGameObject (tile);
 		tileObject.transform.parent = Container.transform;
 		tileObject.AddComponent<SphereCollider> ();
 
@@ -202,28 +197,14 @@ public class Lab : MonoBehaviour
 
 	public void ConnectionCreated (World.Connection conn)
 	{
-		return;
-		GameObject connObject = generators.newConnectionGameObject (conn);
-		connObject.transform.parent = Container.transform;
-		/*
-		GameObject sphere = GameObject.CreatePrimitive (PrimitiveType.Sphere);
-		sphere.transform.name = conn.ToString ();
-		sphere.transform.parent = Container.transform;
-
-		Pipe sourcePipe = (Pipe)conn.source.tile.visual;
-		Vector3 source = sourcePipe.transform.position;
-		Pipe drainPipe = (Pipe)(conn.drain.tile.visual); 
-		Vector3 drain = drainPipe.transform.position;
-
-		sphere.transform.localScale = new Vector3 (0.1f, 0.1f, 0.1f);
-		sphere.transform.position = (source + drain) * 0.5f;
-		*/
-		conn.visual = connObject;
+		GameObject connObj = Generators.CreateConnection (conn);
+		connObj.transform.parent = Container.transform;
+		conn.visual = connObj;
 	}
 
 	public void JointChanged (World.Joint joint)
 	{
-
+		
 	}
 
 	public void ConnectionDestroyed (World.Connection conn)

@@ -61,7 +61,7 @@ public class Pipe : MonoBehaviour
 
 	float FixedAngle ()
 	{
-		return tile.index * 2f * Mathf.PI / tile.layer.tiles.Length;
+		return Mathf.PI * 0.25f + tile.index * 2f * Mathf.PI / tile.layer.tiles.Length;
 	}
 
 	float TargetAngle ()
