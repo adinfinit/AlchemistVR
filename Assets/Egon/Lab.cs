@@ -33,6 +33,8 @@ public class Lab : MonoBehaviour
 
 	Ray SelectionStartRay;
 	Ray SelectionCurrentRay;
+	World.Layer SelectedLayer;
+	float SelectionOffset;
 	List<World.Tile> Selection = new List<World.Tile> ();
 
 	bool Select (Ray ray)
@@ -50,7 +52,8 @@ public class Lab : MonoBehaviour
 		}
 
 		if (target != null) {
-			foreach (World.Tile tile in target.tile.layer.tiles) {
+			SelectedLayer = target.tile.layer;
+			foreach (World.Tile tile in SelectedLayer.tiles) {
 				Selection.Add (tile);
 			}
 			Wall.DisconnectTiles (Selection);
@@ -65,18 +68,24 @@ public class Lab : MonoBehaviour
 		Vector2 start = new Vector2 (SelectionStartRay.direction.x, SelectionStartRay.direction.z);
 		Vector2 current = new Vector2 (SelectionCurrentRay.direction.x, SelectionCurrentRay.direction.z);
 
-		float rotation = Vector2.SignedAngle (current, start) * Mathf.Deg2Rad;
+		SelectionOffset = Vector2.SignedAngle (current, start) * Mathf.Deg2Rad;
 		foreach (World.Tile tile in Selection) {
 			Pipe pipe = (Pipe)tile.visual;
-			pipe.SetOffset (rotation);
+			pipe.SetOffset (SelectionOffset);
 		}
 	}
 
 	void SelectFinish ()
 	{
+		float anglePerTile = 2f * Mathf.PI / (float)Wall.layers [0].tiles.Length;
+		int offsetIndex = (int)Mathf.Round (SelectionOffset / anglePerTile);
+
 		foreach (World.Tile tile in Selection) {
 			Pipe pipe = (Pipe)tile.visual;
 			pipe.SetOffset (0f);
+		}
+		if (offsetIndex != 0) {
+			SelectedLayer.Rotate (offsetIndex);
 		}
 
 		Wall.ConnectTiles (Selection);
