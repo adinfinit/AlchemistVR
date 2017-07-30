@@ -25,7 +25,12 @@ public class TileData : MonoBehaviour
 
 	public World.Tile Tile ()
 	{
-		return wall.rings [layer].tiles [index];
+		return wall.layers [layer].tiles [index];
+	}
+
+	void OnDrawGizmos ()
+	{
+		
 	}
 
 	/*
