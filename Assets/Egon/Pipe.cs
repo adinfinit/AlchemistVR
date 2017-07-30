@@ -22,6 +22,7 @@ public class Pipe : MonoBehaviour
 
 	void Update ()
 	{
+		// TODO: fix localRotation
 		transform.localPosition = TargetPosition ();
 		for (int i = 0; i < tile.joints.Length; i++) {
 			SetJointColor (i, tile.joints [i].liquid.Color ());

@@ -6,6 +6,9 @@ public class GenerateTile : MonoBehaviour
 {
 	GameObject[] spheres;
 	GameObject[] cylinders;
+
+	public World.Tile tile;
+
 	public GameObject cylinder;
 	public GameObject sphere;
 

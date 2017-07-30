@@ -7,9 +7,6 @@ public class GeneratePipe : MonoBehaviour
 	// prefab of a cylinder that is used to create the pipes
 	public GameObject cylinder;
 
-	// store the cylinder that the pipe is made out of
-	GameObject cyl;
-
 	// Generate a cylinder between points
 	GameObject CylinderBetweenPoints (Vector3 p1, Vector3 p2)
 	{
@@ -27,7 +24,7 @@ public class GeneratePipe : MonoBehaviour
 	}
 
 	// generate the pipe between connection and return it
-	public void Generate (World.Connection conn)
+	public GameObject Generate (World.Connection conn)
 	{
 		if (conn.source.tile.visual != null) {
 			if (conn.drain.tile.visual != null) {
@@ -47,10 +44,12 @@ public class GeneratePipe : MonoBehaviour
 				Vector3 pos2 = (Vector3)t2.transform.position + (Vector3)(t2.transform.localToWorldMatrix * offset2);
 
 				GameObject connection = CylinderBetweenPoints (pos1, pos2);
+				connection.transform.parent = this.transform;
 				connection.name = conn.ToString ();
 
-				cyl = connection;
+				return connection;
 			}
 		}
+		return null;
 	}
 }

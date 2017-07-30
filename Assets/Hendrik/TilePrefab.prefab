@@ -20,7 +20,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4231402767832238}
   - component: {fileID: 114093433369354284}
-  - component: {fileID: 114506329601815754}
   m_Layer: 0
   m_Name: TilePrefab
   m_TagString: Untagged
@@ -54,16 +53,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cylinder: {fileID: 1124274990491930, guid: 986d36036c5003a45bcf1698825b15cd, type: 2}
   sphere: {fileID: 1076253324343534, guid: edde989e9a3de8d4c9f5a19c492cfaf4, type: 2}
---- !u!114 &114506329601815754
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1618191494564808}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ce0ddd87278321d42bac0c0155c8e953, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  layer: 0
-  index: 0
