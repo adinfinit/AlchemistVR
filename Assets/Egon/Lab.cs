@@ -88,12 +88,12 @@ public class Lab : MonoBehaviour
 		float anglePerTile = 2f * Mathf.PI / (float)Wall.layers [0].tiles.Length;
 		int offsetIndex = (int)Mathf.Round (SelectionOffset / anglePerTile);
 
+		if (offsetIndex != 0) {
+			SelectedLayer.Rotate (offsetIndex);
+		}
 		foreach (World.Tile tile in Selection) {
 			Pipe pipe = (Pipe)tile.visual;
 			pipe.SetOffset (0f);
-		}
-		if (offsetIndex != 0) {
-			SelectedLayer.Rotate (offsetIndex);
 		}
 
 		Wall.ConnectTiles (Selection);
