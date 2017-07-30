@@ -47,7 +47,6 @@ public class Lab : MonoBehaviour
         Debug.Log("Handling right controller press in LAB");
 
         Pipe targetPipe = null;
-        // selectionStartRay = Camera.main.ScreenPointToRay(Input.mousePosition);
         selectionStartRay = new Ray(controllerRight.transform.position, controllerRight.transform.forward);
         foreach (RaycastHit hit in Physics.RaycastAll(selectionStartRay))
         {
@@ -106,7 +105,21 @@ public class Lab : MonoBehaviour
                 pipe.angleOffset = rotation;
             }
         }
-	}
+
+        if (leftControllerDragging)
+        { // press
+            Ray currentRay = new Ray(controllerLeft.transform.position, controllerLeft.transform.forward);
+
+            Vector2 start = new Vector2(selectionStartRay.direction.x, selectionStartRay.direction.z);
+            Vector2 current = new Vector2(currentRay.direction.x, currentRay.direction.z);
+
+            float rotation = Vector2.SignedAngle(current, start) * Mathf.Deg2Rad;
+            foreach (Pipe pipe in selection)
+            {
+                pipe.angleOffset = rotation;
+            }
+        }
+    }
 
 	void CreateLevel ()
 	{
