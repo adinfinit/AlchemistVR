@@ -4,72 +4,105 @@ using UnityEngine;
 
 public class Lab : MonoBehaviour
 {
-	World.Wall wall;
+    World.Wall wall;
 
-	public int Layers = 5;
-	public int Tiles = 24;
+    public int Layers = 5;
+    public int Tiles = 24;
 
-	public float WallRadius = 1.25f;
-	public float TileRadius = 0.2f;
-	public float YSpacing = 1.75f;
+    public float WallRadius = 1.25f;
+    public float TileRadius = 0.2f;
+    public float YSpacing = 1.75f;
 
-	void Start ()
+    public GameObject controllerLeft;
+    public GameObject controllerRight;
+
+    private bool leftControllerDragging;
+    private bool rightControllerDragging;
+    
+    Ray selectionStartRay;
+    List<Pipe> selection = new List<Pipe>();
+
+
+    void Start()
+    {
+        CreateLevel();
+    }
+
+
+    static public GameObject getChildGameObjectTag(GameObject fromGameObject, string withName)
+    {
+        //Author: Isaac Dart, June-13.
+        Transform[] ts = fromGameObject.transform.GetComponentsInChildren <Transform>();
+        foreach (Transform t in ts) if (t.gameObject.tag == withName) return t.gameObject;
+        return null;
+    }
+
+    public void HandleControllerPressRight()
+    {
+        selection.Clear();
+        Debug.Log("Handling right controller press in LAB");
+
+        Pipe targetPipe = null;
+        // selectionStartRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+        selectionStartRay = new Ray(controllerRight.transform.position, controllerRight.transform.forward);
+        foreach (RaycastHit hit in Physics.RaycastAll(selectionStartRay))
+        {
+            targetPipe = hit.collider.GetComponent<Pipe>();
+            if (targetPipe != null)
+            {
+                break;
+            }
+        }
+
+        if (targetPipe != null)
+        {
+            rightControllerDragging = true;
+
+            foreach (World.Tile tile in targetPipe.tile.layer.tiles)
+            {
+                if (tile == null)
+                {
+                    continue;
+                }
+
+                selection.Add((Pipe)tile.visual);
+            }
+        }
+    }
+
+    public void HandleControllerUnpressRight()
+    {
+        Debug.Log("Handling right controller unpress in LAB");
+        if (Input.GetMouseButtonUp(0))
+        { // release
+            foreach (Pipe pipe in selection)
+            {
+                pipe.angleOffset = 0f;
+            }
+            selection.Clear();
+            rightControllerDragging = false;
+        }
+    }
+
+    void Update ()
 	{
-		CreateLevel ();
-	}
+        if (controllerLeft == null)
+        { controllerLeft = GameObject.FindGameObjectWithTag("LeftController"); }
+        
+        if (controllerRight == null)
+        { controllerRight = GameObject.FindGameObjectWithTag("RightController"); }
+        
 
-	bool inputWasDown = false;
-	bool inputIsDown = false;
+		if (rightControllerDragging) { // press
+			Ray currentRay = new Ray(controllerRight.transform.position, controllerRight.transform.forward);
 
-	Ray selectionStartRay;
-	List<Pipe> selection = new List<Pipe> ();
-
-	void Update ()
-	{
-		inputWasDown = inputIsDown;
-		inputIsDown = Input.GetMouseButton (0);
-
-		if (Input.GetMouseButtonDown (0)) { // down
-			selection.Clear ();
-
-			Pipe targetPipe = null;
-			selectionStartRay = Camera.main.ScreenPointToRay (Input.mousePosition);
-			foreach (RaycastHit hit in Physics.RaycastAll(selectionStartRay)) {
-				targetPipe = hit.collider.GetComponent<Pipe> ();
-				if (targetPipe != null) {
-					break;
-				}
-			}
-
-			if (targetPipe != null) {
-				
-				foreach (World.Tile tile in targetPipe.tile.layer.tiles) {
-					if (tile == null) {
-						continue;
-					}
-
-					selection.Add ((Pipe)tile.visual);
-				}
-			}
-		}
-
-		if (Input.GetMouseButton (0)) { // press
-			Ray currentRay = Camera.main.ScreenPointToRay (Input.mousePosition);
-
-			Vector2 start = new Vector2 (selectionStartRay.direction.x, selectionStartRay.direction.z);
+            Vector2 start = new Vector2 (selectionStartRay.direction.x, selectionStartRay.direction.z);
 			Vector2 current = new Vector2 (currentRay.direction.x, currentRay.direction.z);
 			 
 			float rotation = Vector2.SignedAngle (current, start) * Mathf.Deg2Rad;
 			foreach (Pipe pipe in selection) {
 				pipe.angleOffset = rotation;
 			}
-		}
-
-		if (Input.GetMouseButtonUp (0)) { // release
-			foreach (Pipe pipe in selection) {
-				pipe.angleOffset = 0f;
-			}
-			selection.Clear ();
 		}
 	}
 
