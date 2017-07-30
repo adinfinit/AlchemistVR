@@ -8,7 +8,7 @@ public class SoundManager : MonoBehaviour
     [Header("General attributes")]
     public AnimationCurve fadeCurve;
     [Range(0.001f, 10f)] public float fadeTime = 10f;
-    [Range(0f, 1f)] public float maxVolume = 1f;
+    [Range(0f, 1f)] public float maxVolume = 0.1f;
     [Range(1, 50)] public int numSFXPlayers = 10;
 
     [Header("Playlist")]
@@ -68,7 +68,8 @@ public class SoundManager : MonoBehaviour
         PlayRandomMusicIndefinitely();
 
     }
-    
+
+
     public void playSFX(AudioClip c)
     {
         cur_sfx_idx = cur_sfx_idx % numSFXPlayers;
