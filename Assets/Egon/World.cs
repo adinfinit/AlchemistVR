@@ -542,7 +542,18 @@ namespace World
 		public static void Joint (Joint joint, List<byte> available)
 		{
 			// pick random ports from available
-			int n = Random.Range (1, Mathf.Min (available.Count, 3));
+			int n = 0;
+			float rand = Random.Range (0, 10f);
+			if (rand < 0.5f) {
+				n = 0;
+			} else if (rand < 1.5f) {
+				n = 1;
+			} else if (rand < 6f) {
+				n = 2;
+			} else if (rand > 6f) {
+				n = 3;
+			} 
+
 			joint.ports = new byte[n];
 			for (int i = 0; i < joint.ports.Length; i++) {
 				int k = Random.Range (0, available.Count);
