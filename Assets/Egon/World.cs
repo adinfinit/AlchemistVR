@@ -277,7 +277,7 @@ namespace World
 			wall.UpdateConnections ();
 		}
 
-		public string ToString ()
+		override public string ToString ()
 		{
 			return "L" + index;
 		}

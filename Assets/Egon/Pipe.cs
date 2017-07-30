@@ -24,7 +24,7 @@ public class Pipe : MonoBehaviour
 	{
 		transform.localPosition = TargetPosition ();
 		for (int i = 0; i < tile.joints.Length; i++) {
-			SetJointColor (i, tile.joints [i].liquid.Color);
+			SetJointColor (i, tile.joints [i].liquid.Color ());
 		}
 	}
 
