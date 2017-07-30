@@ -179,9 +179,9 @@ public class SoundManager : MonoBehaviour
 
     public void PlayRandomMusicIndefinitely()
     {
+		curIdx = (curIdx + 1) % playlist.Length;
         // pick next
         AudioClip luckyOne = playlist[curIdx];
-        curIdx = (curIdx + 1) % (playlist.Length - 1);
 
         this.MakeFade(luckyOne);
 

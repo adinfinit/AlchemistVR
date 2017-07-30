@@ -29,8 +29,9 @@ public class Pipe : MonoBehaviour
 		foreach (World.Joint joint in tile.joints) {
 			GameObject obj = joint.gameObject;
 
+			Color target = joint.liquid.Color ();
 			foreach (MeshRenderer mr in obj.GetComponentsInChildren<MeshRenderer>()) {
-				mr.material.color = joint.liquid.Color ();
+				mr.material.color = Color.Lerp(mr.material.color, target, 0.1f);
 			}
 		}
 
