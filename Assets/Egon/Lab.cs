@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class Lab : MonoBehaviour
 {
-	World.Wall wall;
+	World.Wall Wall;
+	GameObject Container;
 
 	public int Layers = 5;
 	public int Tiles = 24;
@@ -42,12 +43,12 @@ public class Lab : MonoBehaviour
 			}
 
 			if (targetPipe != null) {
-				
+				Wall.DisconnectLayer (targetPipe.tile.layer);
+
 				foreach (World.Tile tile in targetPipe.tile.layer.tiles) {
 					if (tile == null) {
 						continue;
 					}
-
 					selection.Add ((Pipe)tile.visual);
 				}
 			}
@@ -75,57 +76,28 @@ public class Lab : MonoBehaviour
 
 	void CreateLevel ()
 	{
-		wall = new World.Wall (this, Layers + 2, Tiles, 6, 6);
-		World.Randomize.Wall (wall);
+		Container = new GameObject ();
+		Container.transform.name = "Wall";
+		Container.transform.parent = transform;
 
-		GameObject container = new GameObject ();
-		container.transform.name = "Wall";
-		container.transform.parent = transform;
+		float totalHeight = (Layers + 2) * TileRadius * YSpacing;
+		Container.transform.position = new Vector3 (0f, totalHeight, 0f);
 
-		float totalHeight = wall.layers.Length * TileRadius * YSpacing;
-		container.transform.position = new Vector3 (0f, totalHeight, 0f);
-
-		foreach (World.Layer ring in wall.layers) {
-			foreach (World.Tile tile in ring.tiles) {
-				if (tile == null) {
-					continue;
-				}
-
-				GameObject sphere = GameObject.CreatePrimitive (PrimitiveType.Sphere);
-				sphere.transform.name = tile.ToString ();
-				sphere.transform.parent = container.transform;
-
-				sphere.AddComponent<SphereCollider> ();
-
-				Pipe pipe = sphere.AddComponent<Pipe> ();
-				tile.visual = pipe;
-				pipe.Init (this, wall, tile);
-
-				MeshRenderer renderer = sphere.GetComponent<MeshRenderer> ();
-				if (tile.joints.Length > 0) {
-					renderer.material.color = tile.joints [0].liquid.Color ();
-				}
-			}
-		}
-
-		foreach (World.Connection conn in wall.connections) {
-			GameObject sphere = GameObject.CreatePrimitive (PrimitiveType.Sphere);
-			sphere.transform.name = conn.ToString ();
-			sphere.transform.parent = container.transform;
-
-			Pipe sourcePipe = (Pipe)conn.source.tile.visual;
-			Vector3 source = sourcePipe.transform.position;
-			Pipe drainPipe = (Pipe)(conn.drain.tile.visual); 
-			Vector3 drain = drainPipe.transform.position;
-
-			sphere.transform.localScale = new Vector3 (0.1f, 0.1f, 0.1f);
-			sphere.transform.position = (source + drain) * 0.5f;
-		}
+		Wall = new World.Wall (this, Layers + 2, Tiles, 6, 6);
+		World.Randomize.Wall (Wall);
 	}
 
 	public void TileCreated (World.Tile tile)
 	{
+		GameObject sphere = GameObject.CreatePrimitive (PrimitiveType.Sphere);
+		sphere.transform.name = tile.ToString ();
+		sphere.transform.parent = Container.transform;
 
+		sphere.AddComponent<SphereCollider> ();
+
+		Pipe pipe = sphere.AddComponent<Pipe> ();
+		tile.visual = pipe;
+		pipe.Init (this, Wall, tile);
 	}
 
 	public void TileChanged (World.Tile tile)
@@ -135,12 +107,25 @@ public class Lab : MonoBehaviour
 
 	public void TileDestroyed (World.Tile tile)
 	{
-
+		Destroy (tile.visual);
+		tile.visual = null;
 	}
 
 	public void ConnectionCreated (World.Connection conn)
 	{
+		GameObject sphere = GameObject.CreatePrimitive (PrimitiveType.Sphere);
+		sphere.transform.name = conn.ToString ();
+		sphere.transform.parent = Container.transform;
 
+		Pipe sourcePipe = (Pipe)conn.source.tile.visual;
+		Vector3 source = sourcePipe.transform.position;
+		Pipe drainPipe = (Pipe)(conn.drain.tile.visual); 
+		Vector3 drain = drainPipe.transform.position;
+
+		sphere.transform.localScale = new Vector3 (0.1f, 0.1f, 0.1f);
+		sphere.transform.position = (source + drain) * 0.5f;
+
+		conn.visual = sphere;
 	}
 
 	public void JointChanged (World.Joint joint)
@@ -150,6 +135,11 @@ public class Lab : MonoBehaviour
 
 	public void ConnectionDestroyed (World.Connection conn)
 	{
+		if (conn.visual == null) {
+			return;
+		}
 
+		Destroy (conn.visual);
+		conn.visual = null;
 	}
 }
