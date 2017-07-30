@@ -284,7 +284,9 @@ namespace World
 			Connection conn = new Connection (source, sourcePort, drain, drainPort);
 			if (before.Contains (conn)) {
 				before.Remove (conn);
+				source.drains.Remove (drain);
 			} else {
+				source.drains.Add (drain);
 				layer.wall.connections.Add (conn);
 				if (layer.wall.lab != null) {
 					layer.wall.lab.ConnectionCreated (conn);
@@ -319,6 +321,7 @@ namespace World
 			for (int i = layer.wall.connections.Count - 1; i >= 0; i--) {
 				Connection conn = layer.wall.connections [i];
 				if (conn.drain.tile == this || conn.source.tile == this) {
+					conn.source.drains.Remove (conn.drain);
 					layer.wall.connections.RemoveAt (i);
 					if (layer.wall.lab != null) {
 						layer.wall.lab.ConnectionDestroyed (conn);
@@ -521,6 +524,33 @@ namespace World
 			}
 		}
 
+		public static void TestTile (Tile tile)
+		{
+			tile.joints = new Joint[1];
+			tile.joints [0] = new Joint (tile);
+			Joint joint = tile.joints [0];
+
+			joint.ports = new byte[3];
+			if ((tile.index & 1) == 1) {
+				joint.ports [0] = 0;
+				joint.ports [1] = 2;
+				joint.ports [2] = 4;
+			} else {
+				joint.ports [0] = 1;
+				joint.ports [1] = 3;
+				joint.ports [2] = 5;
+			}
+
+			Liquid (ref joint.liquid);
+
+
+			Lab lab = tile.layer.wall.lab;
+			if (lab != null) {
+				lab.JointChanged (joint);
+			}
+			tile.UpdateCrossReference ();
+		}
+
 		public static void Tile (Tile tile)
 		{
 			int n = Random.Range (1, 3);
@@ -533,6 +563,7 @@ namespace World
 
 			for (int i = 0; i < tile.joints.Length; i++) {
 				tile.joints [i] = new Joint (tile);
+				Joint joint = tile.joints [i];
 				Joint (tile.joints [i], available);
 			}
 

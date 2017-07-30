@@ -29,7 +29,7 @@ public class Lab : MonoBehaviour
 		Wall = new World.Wall (this, Layers + 2, Tiles, 6, 6);
 		World.Randomize.Wall (Wall);
 
-		InvokeRepeating ("CallDrain", 5, 2);
+		InvokeRepeating ("CallDrain", 1f, 0.25f);
 	}
 
 	void CallDrain ()
