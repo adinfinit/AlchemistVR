@@ -136,9 +136,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31d0c8407b65bf247afce253169c429a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TilePrefab: {fileID: 1618191494564808, guid: 768f413093c586242878318182139bfc, type: 2}
-  cylinder: {fileID: 1124274990491930, guid: 986d36036c5003a45bcf1698825b15cd, type: 2}
-  sphere: {fileID: 1076253324343534, guid: edde989e9a3de8d4c9f5a19c492cfaf4, type: 2}
 --- !u!4 &481968924
 Transform:
   m_ObjectHideFlags: 0
@@ -163,6 +160,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7982ef2bfc20c4f4481cc9f0ad9f574c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TilePrefab: {fileID: 1618191494564808, guid: 768f413093c586242878318182139bfc, type: 2}
+  PipePrefab: {fileID: 1334893960249996, guid: 562cb00213f875f4d8caadc33278b6e3, type: 2}
 --- !u!1 &738521581
 GameObject:
   m_ObjectHideFlags: 0

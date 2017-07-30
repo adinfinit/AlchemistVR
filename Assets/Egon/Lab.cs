@@ -4,108 +4,106 @@ using UnityEngine;
 
 public class Lab : MonoBehaviour
 {
-    World.Wall Wall;
-    GameObject Container;
+	World.Wall Wall;
+	GameObject Container;
 
-    public int Layers = 5;
-    public int Tiles = 24;
+	public int Layers = 5;
+	public int Tiles = 24;
 
-    public float WallRadius = 1.25f;
-    public float TileRadius = 0.2f;
-    public float YSpacing = 1.75f;
+	public float WallRadius = 1.25f;
+	public float TileRadius = 0.2f;
+	public float YSpacing = 1.75f;
 
-    public GameObject controllerLeft;
-    public GameObject controllerRight;
+	public GameObject controllerLeft;
+	public GameObject controllerRight;
 
-    private bool leftControllerDragging;
-    private bool rightControllerDragging;
+	private bool leftControllerDragging;
+	private bool rightControllerDragging;
 
-    
+	Generators generators;
 
-
-    Ray selectionStartRay;
-    List<Pipe> selection = new List<Pipe>();
-
-
-    void Start()
-    {
-        CreateLevel();
-    }
+	Ray selectionStartRay;
+	List<Pipe> selection = new List<Pipe> ();
 
 
-    static public GameObject getChildGameObjectTag(GameObject fromGameObject, string withName)
-    {
-        //Author: Isaac Dart, June-13.
-        Transform[] ts = fromGameObject.transform.GetComponentsInChildren <Transform>();
-        foreach (Transform t in ts) if (t.gameObject.tag == withName) return t.gameObject;
-        return null;
-    }
+	void Start ()
+	{
+		generators = GetComponent<Generators> ();
+		CreateLevel ();
+	}
 
-    public void HandleControllerPressRight()
-    {
-        selection.Clear();
-        Debug.Log("Handling right controller press in LAB");
 
-        Pipe targetPipe = null;
-        // selectionStartRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-        selectionStartRay = new Ray(controllerRight.transform.position, controllerRight.transform.forward);
-        foreach (RaycastHit hit in Physics.RaycastAll(selectionStartRay))
-        {
-            targetPipe = hit.collider.GetComponent<Pipe>();
-            if (targetPipe != null)
-            {
-                break;
-            }
-        }
+	static public GameObject getChildGameObjectTag (GameObject fromGameObject, string withName)
+	{
+		//Author: Isaac Dart, June-13.
+		Transform[] ts = fromGameObject.transform.GetComponentsInChildren <Transform> ();
+		foreach (Transform t in ts)
+			if (t.gameObject.tag == withName)
+				return t.gameObject;
+		return null;
+	}
 
-        if (targetPipe != null)
-        {
-            rightControllerDragging = true;
-            Wall.DisconnectLayer(targetPipe.tile.layer);
-            foreach (World.Tile tile in targetPipe.tile.layer.tiles)
-            {
-                if (tile == null) {
-                    continue;
-                }
+	public void HandleControllerPressRight ()
+	{
+		selection.Clear ();
+		Debug.Log ("Handling right controller press in LAB");
 
-                selection.Add((Pipe)tile.visual);
-            }
-        }
-    }
+		Pipe targetPipe = null;
+		// selectionStartRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+		selectionStartRay = new Ray (controllerRight.transform.position, controllerRight.transform.forward);
+		foreach (RaycastHit hit in Physics.RaycastAll(selectionStartRay)) {
+			targetPipe = hit.collider.GetComponent<Pipe> ();
+			if (targetPipe != null) {
+				break;
+			}
+		}
 
-    public void HandleControllerUnpressRight()
-    {
-        Debug.Log("Handling right controller unpress in LAB");
-        if (Input.GetMouseButtonUp(0))
-        { // release
-            foreach (Pipe pipe in selection)
-            {
-                pipe.angleOffset = 0f;
-            }
-            selection.Clear();
-            rightControllerDragging = false;
-        }
-    }
+		if (targetPipe != null) {
+			rightControllerDragging = true;
+			Wall.DisconnectLayer (targetPipe.tile.layer);
+			foreach (World.Tile tile in targetPipe.tile.layer.tiles) {
+				if (tile == null) {
+					continue;
+				}
+
+				selection.Add ((Pipe)tile.visual);
+			}
+		}
+	}
+
+	public void HandleControllerUnpressRight ()
+	{
+		Debug.Log ("Handling right controller unpress in LAB");
+		if (Input.GetMouseButtonUp (0)) { // release
+			foreach (Pipe pipe in selection) {
+				pipe.angleOffset = 0f;
+			}
+			selection.Clear ();
+			rightControllerDragging = false;
+		}
+	}
+
 	void Update ()
 	{
-        if (controllerLeft == null)
-        { controllerLeft = GameObject.FindGameObjectWithTag("LeftController"); }
+		if (controllerLeft == null) {
+			controllerLeft = GameObject.FindGameObjectWithTag ("LeftController");
+		}
         
-        if (controllerRight == null)
-        { controllerRight = GameObject.FindGameObjectWithTag("RightController"); }
+		if (controllerRight == null) {
+			controllerRight = GameObject.FindGameObjectWithTag ("RightController");
+		}
 
 		if (rightControllerDragging) { // press
-            Ray currentRay = new Ray(controllerRight.transform.position, controllerRight.transform.forward);
+			Ray currentRay = new Ray (controllerRight.transform.position, controllerRight.transform.forward);
 
-            Vector2 start = new Vector2(selectionStartRay.direction.x, selectionStartRay.direction.z);
-            Vector2 current = new Vector2(currentRay.direction.x, currentRay.direction.z);
+			Vector2 start = new Vector2 (selectionStartRay.direction.x, selectionStartRay.direction.z);
+			Vector2 current = new Vector2 (currentRay.direction.x, currentRay.direction.z);
 
-            float rotation = Vector2.SignedAngle(current, start) * Mathf.Deg2Rad;
-            foreach (Pipe pipe in selection)
-            {
-                pipe.angleOffset = rotation;
-            }
-        }
+			float rotation = Vector2.SignedAngle (current, start) * Mathf.Deg2Rad;
+			foreach (Pipe pipe in selection) {
+				pipe.angleOffset = rotation;
+			}
+		}
 	}
 
 	void CreateLevel ()
@@ -123,6 +121,7 @@ public class Lab : MonoBehaviour
 
 	public void TileCreated (World.Tile tile)
 	{
+		/*
 		GameObject sphere = GameObject.CreatePrimitive (PrimitiveType.Sphere);
 		sphere.transform.name = tile.ToString ();
 		sphere.transform.parent = Container.transform;
@@ -131,6 +130,11 @@ public class Lab : MonoBehaviour
 
 		Pipe pipe = sphere.AddComponent<Pipe> ();
 		tile.visual = pipe;
+		pipe.Init (this, Wall, tile);
+		*/
+		GameObject tileObject = generators.newTileGameObject (tile);
+		tileObject.AddComponent<SphereCollider> ();
+		Pipe pipe = tileObject.AddComponent<Pipe> ();
 		pipe.Init (this, Wall, tile);
 	}
 
@@ -147,6 +151,8 @@ public class Lab : MonoBehaviour
 
 	public void ConnectionCreated (World.Connection conn)
 	{
+		GameObject connObject = generators.newConnectionGameObject (conn);
+		/*
 		GameObject sphere = GameObject.CreatePrimitive (PrimitiveType.Sphere);
 		sphere.transform.name = conn.ToString ();
 		sphere.transform.parent = Container.transform;
@@ -158,8 +164,8 @@ public class Lab : MonoBehaviour
 
 		sphere.transform.localScale = new Vector3 (0.1f, 0.1f, 0.1f);
 		sphere.transform.position = (source + drain) * 0.5f;
-
-		conn.visual = sphere;
+		*/
+		conn.visual = connObject;
 	}
 
 	public void JointChanged (World.Joint joint)

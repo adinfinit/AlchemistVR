@@ -20,12 +20,15 @@ public class Generators : MonoBehaviour
 				newTile.name = tile.ToStringWithPorts ();
 
 				tile.visual = newTile;
+				tile.joints [0].gameObject = newTile.GetComponent<GenerateTile> ().joints [0];
 			} else if (tile.joints.Length == 2) {
 				newTile.GetComponent<GenerateTile> ().Generate (tile.joints [0].ports, tile.joints [1].ports);
 				newTile.GetComponent<GenerateTile> ().tile = tile;
 				newTile.name = tile.ToStringWithPorts ();
 
 				tile.visual = newTile;
+				tile.joints [0].gameObject = newTile.GetComponent<GenerateTile> ().joints [0];
+				tile.joints [1].gameObject = newTile.GetComponent<GenerateTile> ().joints [1];
 			} 
 
 			float angle = (float)tile.index * 2f * Mathf.PI / (float)tile.layer.tiles.Length;
