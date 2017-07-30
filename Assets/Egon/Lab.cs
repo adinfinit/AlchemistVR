@@ -76,8 +76,7 @@ public class Lab : MonoBehaviour
 	void CreateLevel ()
 	{
 		wall = new World.Wall (Layers + 2, Tiles, 6, 6);
-		wall.Randomize ();
-		wall.RandomizeColors ();
+		World.Randomize.Wall (wall);
 
 		GameObject container = new GameObject ();
 		container.transform.name = "Wall";

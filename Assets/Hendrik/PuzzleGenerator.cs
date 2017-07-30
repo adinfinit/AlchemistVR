@@ -13,7 +13,7 @@ public class PuzzleGenerator : MonoBehaviour
 	void Start ()
 	{
 		puzzle = new World.Wall (3, 5, 5, 5);
-		puzzle.Randomize ();
+		World.Randomize.Wall (puzzle);
 
 		for (int i = 1; i < puzzle.layers.Length; i++) {
 			World.Layer ring = puzzle.layers [i];

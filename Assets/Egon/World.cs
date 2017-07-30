@@ -87,7 +87,7 @@ namespace World
 		}
 
 		// update connections and joints
-		public void updateConnections ()
+		public void UpdateConnections ()
 		{
 			List<Connection> conns = new List<Connection> ();
 
@@ -133,9 +133,9 @@ namespace World
 					}
 
 					List<Connection> target = tile.IsOffset () ? bottoms : tops;
-					tryConnect (target, tile, 3, bottom, 0);
-					tryConnect (target, tile, 4, left, 1);
-					tryConnect (target, tile, 2, right, 5);
+					TryConnect (target, tile, 3, bottom, 0);
+					TryConnect (target, tile, 4, left, 1);
+					TryConnect (target, tile, 2, right, 5);
 				}
 
 				conns.AddRange (tops);
@@ -160,7 +160,7 @@ namespace World
 			}
 		}
 
-		private static void tryConnect (List<Connection> conns, Tile sourceTile, byte sourcePort, Tile drainTile, byte drainPort)
+		private static void TryConnect (List<Connection> conns, Tile sourceTile, byte sourcePort, Tile drainTile, byte drainPort)
 		{
 			if (sourceTile == null || drainTile == null) {
 				return;
@@ -175,23 +175,6 @@ namespace World
 			conns.Add (new Connection (source, sourcePort, drain, drainPort));
 			source.drains.Add (drain);
 			drain.sources.Add (source);
-		}
-
-		public void Randomize ()
-		{
-			for (int i = 0; i < layers.Length; i++) {
-				Layer layer = layers [i];
-				layer.Randomize ();
-			}
-
-			updateConnections ();
-		}
-
-		public void RandomizeColors ()
-		{
-			foreach (Layer layer in layers) {
-				layer.RandomizeColors ();
-			}
 		}
 	}
 
@@ -230,35 +213,7 @@ namespace World
 			}
 			tiles = next;
 
-			wall.updateConnections ();
-		}
-
-		// randomize each tile in layer
-		public void Randomize ()
-		{
-			if (locked) {
-				return;
-			}
-
-			foreach (Tile tile in tiles) {
-				if (tile == null) {
-					continue;
-				}
-
-				tile.Randomize ();
-			}
-		}
-
-		public void RandomizeColors ()
-		{
-			foreach (Tile tile in tiles) {
-				if (tile == null) {
-					continue;
-				}
-				foreach (Joint joint in tile.joints) {
-					joint.liquid.Randomize ();
-				}
-			}
+			wall.UpdateConnections ();
 		}
 	}
 
@@ -289,7 +244,7 @@ namespace World
 		}
 
 		// update used ports list
-		private void updateCrossReference ()
+		public void UpdateCrossReference ()
 		{
 			for (int i = 0; i < this.ports.Length; i++) {
 				this.ports [i] = null;
@@ -299,25 +254,6 @@ namespace World
 					this.ports [this.joints [i].ports [k]] = this.joints [i];
 				}
 			}
-		}
-
-		// choose random joints
-		public void Randomize ()
-		{
-			int n = Random.Range (1, 3);
-			joints = new Joint[n];
-
-			List<byte> available = new List<byte> ();
-			for (byte k = 0; k < 6; k++) {
-				available.Add (k);
-			}
-
-			for (int i = 0; i < joints.Length; i++) {
-				joints [i] = new Joint (this);
-				joints [i].Randomize (available);
-			}
-
-			updateCrossReference ();
 		}
 
 		public bool IsOffset ()
@@ -356,18 +292,6 @@ namespace World
 		public Joint (Tile tile)
 		{
 			this.tile = tile;
-		}
-
-		// pick random ports from available
-		public void Randomize (List<byte> available)
-		{
-			int n = Random.Range (1, Mathf.Min (available.Count, 3));
-			ports = new byte[n];
-			for (int i = 0; i < ports.Length; i++) {
-				int k = Random.Range (0, available.Count);
-				ports [i] = available [k];
-				available.RemoveAt (k);
-			}
 		}
 
 		public bool Update ()
@@ -457,14 +381,6 @@ namespace World
 			return c;
 		}
 
-		public void Randomize ()
-		{
-			int v = Random.Range (1, 8);
-			this.r = ((v >> 0) & 1) == 1;
-			this.g = ((v >> 1) & 1) == 1;
-			this.b = ((v >> 2) & 1) == 1;
-		}
-
 		public bool IsFilled ()
 		{
 			return this.r | this.g | this.b;
@@ -473,6 +389,72 @@ namespace World
 		public bool IsEmpty ()
 		{
 			return !this.IsFilled ();
+		}
+	}
+
+	public static class Randomize
+	{
+		public static void Wall (Wall wall)
+		{
+			foreach (Layer layer in wall.layers) {
+				Layer (layer);
+			}
+
+			wall.UpdateConnections ();
+		}
+
+		public static void Layer (Layer layer)
+		{
+			if (layer.locked) {
+				return;
+			}
+
+			foreach (Tile tile in layer.tiles) {
+				if (tile == null) {
+					continue;
+				}
+				Tile (tile);
+			}
+		}
+
+		public static void Tile (Tile tile)
+		{
+			int n = Random.Range (1, 3);
+			tile.joints = new Joint[n];
+
+			List<byte> available = new List<byte> ();
+			for (byte k = 0; k < 6; k++) {
+				available.Add (k);
+			}
+
+			for (int i = 0; i < tile.joints.Length; i++) {
+				tile.joints [i] = new Joint (tile);
+				Joint (tile.joints [i], available);
+			}
+
+			tile.UpdateCrossReference ();
+		}
+
+		public static void Joint (Joint joint, List<byte> available)
+		{
+			// pick random ports from available
+			int n = Random.Range (1, Mathf.Min (available.Count, 3));
+			joint.ports = new byte[n];
+			for (int i = 0; i < joint.ports.Length; i++) {
+				int k = Random.Range (0, available.Count);
+				joint.ports [i] = available [k];
+				available.RemoveAt (k);
+			}
+
+			Liquid (ref joint.liquid);
+		}
+
+		public static void Liquid (ref Liquid liquid)
+		{
+			int v = Random.Range (1, 8);
+			liquid.r = ((v >> 0) & 1) == 1;
+			liquid.g = ((v >> 1) & 1) == 1;
+			liquid.b = ((v >> 2) & 1) == 1;
 		}
 	}
 }
