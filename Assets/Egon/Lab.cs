@@ -168,12 +168,20 @@ public class Lab : MonoBehaviour
 
 	public void HandleControllerPressRight ()
 	{
+		if (ViveRight == null) {
+			return;
+		}
+
 		ViveRightDown = true;
 		Select (new Ray (ViveRight.transform.position, ViveRight.transform.forward));
 	}
 
 	public void HandleControllerUnpressRight ()
 	{
+		if (ViveRight == null) {
+			return;
+		}
+
 		ViveRightDown = false;
 		SelectFinish ();
 	}
@@ -184,6 +192,8 @@ public class Lab : MonoBehaviour
 
 	public void TileCreated (World.Tile tile)
 	{
+		TileDestroyed (tile); // ensure that there are no left overs
+
 		GameObject tileObject = Generators.CreateTile (tile);
 		tileObject.transform.parent = Container.transform;
 		tileObject.AddComponent<SphereCollider> ();
@@ -195,7 +205,6 @@ public class Lab : MonoBehaviour
 
 	public void TileChanged (World.Tile tile)
 	{
-		TileDestroyed (tile);
 		TileCreated (tile);
 	}
 

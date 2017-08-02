@@ -15,8 +15,8 @@ public class Generators : MonoBehaviour
 		int index = 0;
 		foreach (World.Joint joint in tile.joints) {
 			GameObject jointObj = CreateJoint (joint, index);
-			index++;
 			jointObj.transform.parent = tileObj.transform;
+			index++;
 		}
 		tile.visual = tileObj;
 		tileObj.name = tile.ToString ();

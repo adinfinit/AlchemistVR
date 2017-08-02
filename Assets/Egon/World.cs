@@ -172,12 +172,13 @@ namespace World
 				tile.kind = kind;
 
 				Joint joint = new Joint (tile);
-				tile.joints = new Joint[1]{ joint };
+				int color = k % 3;
+				joint.liquid = new Liquid (color == 0, color == 1, color == 2);
 				joint.ports = new byte[1]{ port };
+
+				tile.joints = new Joint[1]{ joint };
 				tile.UpdateCrossReference ();
 
-				int rand = Random.Range (0, 2);
-				joint.liquid = new Liquid (rand == 0, rand == 1, rand == 2);
 				tiles [index] = tile;
 
 				if (wall.lab != null) {
@@ -394,13 +395,9 @@ namespace World
 
 		public void Drain ()
 		{
-			if (tile.kind == Tile.Kind.Source) {
-				return;
-			}
-
 			foreach (Joint drain in drains) {
 				// use nextLiquid to immediate flow
-				drain.nextLiquid = drain.nextLiquid.Mix (this.liquid);
+				drain.nextLiquid = drain.nextLiquid.Mix (liquid);
 			}
 		}
 
@@ -481,21 +478,21 @@ namespace World
 		public Color Color ()
 		{
 			Color c = new Color ();
-			c.a = 1;
-			c.r = this.r ? 1 : 0;
-			c.g = this.g ? 1 : 0;
-			c.b = this.b ? 1 : 0;
+			c.a = 1f;
+			c.r = r ? 1f : 0f;
+			c.g = g ? 1f : 0f;
+			c.b = b ? 1f : 0f;
 			return c;
 		}
 
 		public bool IsFilled ()
 		{
-			return this.r | this.g | this.b;
+			return r | g | b;
 		}
 
 		public bool IsEmpty ()
 		{
-			return !this.IsFilled ();
+			return !IsFilled ();
 		}
 	}
 
