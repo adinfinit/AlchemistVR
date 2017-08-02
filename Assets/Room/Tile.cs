@@ -11,7 +11,7 @@ public class Tile : MonoBehaviour
 		Drain
 	}
 
-	Wall wall;
+	public Wall wall;
 
 	public bool detached;
 
