@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Lab : MonoBehaviour
 {
+	/*
 	World.Wall Wall;
 	GameObject Container;
 
@@ -238,4 +239,5 @@ public class Lab : MonoBehaviour
 	}
 
 	#endregion
+	*/
 }
