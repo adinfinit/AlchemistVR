@@ -48,7 +48,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1537530825917834}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 74c458777b6a5c64f94c624af24eaaa9, type: 3}
+  m_Script: {fileID: 11500000, guid: 3b93521f91d7649079b9049af6daaa7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   detached: 0
@@ -63,3 +63,10 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   joints: []
+  valve:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
