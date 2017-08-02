@@ -27,7 +27,7 @@ public class Joint : MonoBehaviour
 		RecreatePipes ();
 
 		if (tile.kind == Tile.Kind.Source) {
-			liquid.RandomizePrimary ();
+			liquid.SetPrimary (tile.index);
 		} else {
 			liquid.Randomize ();
 		}
@@ -35,6 +35,10 @@ public class Joint : MonoBehaviour
 
 	void Update ()
 	{
+		if (tile == null) {
+			return;
+		}
+
 		Color color = liquid.Color ();
 		foreach (MeshRenderer renderer in GetComponentsInChildren<MeshRenderer> ()) {
 			renderer.material.color = Color.Lerp (renderer.material.color, color, 0.1f);

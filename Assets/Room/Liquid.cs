@@ -55,10 +55,15 @@ public struct Liquid
 
 	public void RandomizePrimary ()
 	{
-		int v = Random.Range (1, 4);
+		SetPrimary (Random.Range (0, 3));
+	}
 
-		r = v == 1;
-		g = v == 2;
-		b = v == 3;
+	public void SetPrimary (int i)
+	{
+		int v = Mathf.Abs (i) % 3;
+
+		r = v == 0;
+		g = v == 1;
+		b = v == 2;
 	}
 }

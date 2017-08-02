@@ -11395,12 +11395,12 @@ MonoBehaviour:
   DrainPrefab: {fileID: 1881134923056164, guid: d1c11281b9f4b41a29f483aeacff72d2,
     type: 2}
   LayerCount: 7
-  TileCount: 11
+  TileCount: 10
   SourceCount: 5
   DrainCount: 5
   Radius: 1.25
-  TileSize: 0.52
-  YSpacing: 0.83
+  TileSize: 0.4
+  YSpacing: 0.5
 --- !u!4 &1729377781
 Transform:
   m_ObjectHideFlags: 0

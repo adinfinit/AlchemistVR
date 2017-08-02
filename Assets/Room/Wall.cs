@@ -116,7 +116,7 @@ public class Wall : MonoBehaviour
 
 	public float LayerHeight (int y)
 	{
-		return (LayerCount - y) * 0.5f * YSpacing;
+		return ((float)(LayerCount - y - 1) + 0.5f) * 0.5f * YSpacing;
 	}
 
 	public void GetAngularPosition (int layer, int index, out float angle, out float y)

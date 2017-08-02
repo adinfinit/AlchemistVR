@@ -20,6 +20,9 @@ public class Tile : MonoBehaviour
 	// layer at the wall grid; index from the center
 	public int layer, index;
 
+	public GameObject Potion;
+	Material LiquidMaterial;
+
 	// null | Joint that is in that port
 	public Joint[] ports = new Joint[6];
 	// list of all joints
@@ -29,7 +32,16 @@ public class Tile : MonoBehaviour
 
 	void Start ()
 	{
-		
+		if (Potion != null) {
+			MeshRenderer renderer = Potion.GetComponent<MeshRenderer> ();
+			for (int i = 0; i < renderer.materials.Length; i++) {
+				Material mat = renderer.materials [i];
+				if (mat.name == "HealthLiquid (Instance)") {
+					LiquidMaterial = mat;
+					break;
+				}
+			}
+		}
 	}
 
 	public void Init (Wall wall, int layer, int index)
@@ -44,10 +56,10 @@ public class Tile : MonoBehaviour
 			joints = new Joint[1];
 			switch (kind) {
 			case Kind.Source:
-				joints [0] = CreateJoint (0, new byte[3]{ 2, 3, 4 });
+				joints [0] = CreateJoint (0, new byte[4]{ 0, 2, 3, 4 });
 				break;
 			case Kind.Drain:
-				joints [0] = CreateJoint (0, new byte[1]{ 0 });
+				joints [0] = CreateJoint (0, new byte[3]{ 0, 1, 5 });
 				break;
 			}
 
@@ -73,10 +85,6 @@ public class Tile : MonoBehaviour
 
 		GameObject obj = Geometry.CylinderBetweenPoints (sourcePos, drainPos, transform.lossyScale.x * Joint.Thickness);
 
-		Vector3 scaled = obj.transform.localScale;
-		scaled.Scale (new Vector3 (1.5f, 2f, 1.5f));
-		obj.transform.localScale = scaled;
-
 		obj.name = "Valve " + sourcePort; 
 		obj.transform.parent = ports [sourcePort].transform;
 		valve [sourcePort] = obj;
@@ -90,6 +98,10 @@ public class Tile : MonoBehaviour
 
 	void Update ()
 	{
+		if (wall == null) {
+			return;
+		}
+
 		Vector3 position;
 		wall.GetTilePosition (layer, index, out position);
 		transform.localPosition = position;
@@ -97,6 +109,11 @@ public class Tile : MonoBehaviour
 		Vector3 center = wall.transform.position;
 		center.y = transform.position.y;
 		transform.LookAt (center);
+	
+		if (LiquidMaterial != null) {
+			Color color = joints [0].liquid.Color ();
+			LiquidMaterial.color = Color.Lerp (LiquidMaterial.color, color, 0.1f);
+		}
 	}
 
 	public void Randomize ()
@@ -105,8 +122,7 @@ public class Tile : MonoBehaviour
 			return;
 		}
 
-		// testing code
-		/*
+		/* testing code
 		if (false) {
 			joints = new Joint[1];
 			Joint joint = CreateJoint (0, new byte[6]{ 0, 1, 2, 3, 4, 5 }); 
