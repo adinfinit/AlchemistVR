@@ -136,7 +136,6 @@ public class Lab : MonoBehaviour
 
 	#region Vive
 
-	public bool ViveTriedConnect = false;
 	public GameObject ViveLeft = null;
 	public GameObject ViveRight = null;
 
@@ -145,15 +144,12 @@ public class Lab : MonoBehaviour
 
 	void UpdateVive ()
 	{
-		if (!ViveTriedConnect) {
-			ViveTriedConnect = true;
-			try {
-				ViveLeft = GameObject.FindGameObjectWithTag ("LeftController");
-				ViveRight = GameObject.FindGameObjectWithTag ("RightController");
-			} catch {
-			}
+		try {
+			ViveLeft = GameObject.FindGameObjectWithTag ("LeftController");
+			ViveRight = GameObject.FindGameObjectWithTag ("RightController");
+		} catch {
 		}
-
+		
 		if (ViveLeft == null && ViveRight == null) {
 			return;
 		}
