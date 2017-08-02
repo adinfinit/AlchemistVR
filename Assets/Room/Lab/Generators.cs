@@ -21,9 +21,11 @@ public class Generators : MonoBehaviour
 		tile.visual = tileObj;
 		tileObj.name = tile.ToString ();
 
-		// GameObject box = GameObject.CreatePrimitive (PrimitiveType.Cube);
-		// box.transform.localScale = new Vector3 (1f, 1f, 0.1f);
-		// box.transform.SetParent (tileObj.transform, false);
+		/* 
+		GameObject box = GameObject.CreatePrimitive (PrimitiveType.Cube);
+		box.transform.localScale = new Vector3 (1f, 1f, 0.1f);
+		box.transform.SetParent (tileObj.transform, false);
+		*/
 
 		return tileObj;
 	}
@@ -123,54 +125,5 @@ public class Generators : MonoBehaviour
 		cylinder.transform.localScale = scale;
 
 		return cylinder;
-	}
-
-	public GameObject newTileGameObject (World.Tile tile)
-	{
-		if (tile == null) {
-			Debug.Break ();
-		}
-		if (tile != null) {
-			GameObject newTile = Instantiate (TilePrefab);
-
-			if (tile.joints.Length == 1) {
-				newTile.GetComponent<GenerateTile> ().Generate (tile.joints [0].ports);
-				newTile.GetComponent<GenerateTile> ().tile = tile;
-				newTile.name = tile.ToStringWithPorts ();
-
-				tile.visual = newTile;
-				tile.joints [0].gameObject = newTile.GetComponent<GenerateTile> ().joints [0];
-			} else if (tile.joints.Length == 2) {
-				newTile.GetComponent<GenerateTile> ().Generate (tile.joints [0].ports, tile.joints [1].ports);
-				newTile.GetComponent<GenerateTile> ().tile = tile;
-				newTile.name = tile.ToStringWithPorts ();
-
-				tile.visual = newTile;
-				tile.joints [0].gameObject = newTile.GetComponent<GenerateTile> ().joints [0];
-				tile.joints [1].gameObject = newTile.GetComponent<GenerateTile> ().joints [1];
-			} 
-
-			float angle = (float)tile.index * 2f * Mathf.PI / (float)tile.layer.tiles.Length;
-			float y = (float)tile.layer.index + (tile.IsOffset () ? 0.5f : 0.0f);
-
-			Vector3 position = new Vector3 ();
-			position.x = Mathf.Cos (angle) * WallRadius;
-			position.z = -Mathf.Sin (angle) * WallRadius;
-			position.y = -y * 4;
-
-			newTile.transform.position = position;
-			newTile.transform.Rotate (90, Mathf.Rad2Deg * angle + 90, 180);
-
-			return newTile;
-		}
-		return null;
-	}
-
-	public GameObject newConnectionGameObject (World.Connection conn)
-	{
-		GameObject newConn = Instantiate (PipePrefab);
-		newConn.GetComponent<GeneratePipe> ().Generate (conn);
-
-		return newConn;
 	}
 }
