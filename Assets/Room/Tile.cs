@@ -13,7 +13,7 @@ public class Tile : MonoBehaviour
 
 	public Wall wall;
 
-	public bool detached;
+	public bool attached = true;
 
 	// kind determines draining behavior
 	public Kind kind;
@@ -71,6 +71,13 @@ public class Tile : MonoBehaviour
 		}
 	}
 
+	public void GetSources (out Tile left, out Tile top, out Tile right)
+	{
+		left = wall.Get (layer - 1, index - 1 + (layer & 1));
+		top = wall.Get (layer - 2, index);
+		right = wall.Get (layer - 1, index + (layer & 1));
+	}
+
 	public void GetDrains (out Tile left, out Tile  bottom, out Tile right)
 	{
 		left = wall.Get (layer + 1, index - 1 + (layer & 1));
@@ -92,8 +99,47 @@ public class Tile : MonoBehaviour
 
 	public void RemoveValve (byte sourcePort)
 	{
+		if (valve [sourcePort] == null) {
+			return;
+		}
 		Destroy (valve [sourcePort]);
 		valve [sourcePort] = null;
+	}
+
+	public void Attach ()
+	{
+		attached = true;
+		SetGrab (0f, 0);
+	}
+
+	float angularOffset = 0.0f;
+	int controllerIndex = 0;
+
+	public void SetGrab (float angularOffset, int controllerIndex)
+	{
+		this.angularOffset = angularOffset;
+		this.controllerIndex = controllerIndex;
+	}
+
+	public void Detach ()
+	{
+		attached = false;
+
+		Tile left, top, right;
+		GetSources (out left, out top, out right);
+		if (left != null) {
+			left.RemoveValve (2);
+		}
+		if (left != null) {
+			top.RemoveValve (3);
+		}
+		if (left != null) {
+			right.RemoveValve (4);
+		}
+
+		RemoveValve (4);
+		RemoveValve (3);
+		RemoveValve (2);
 	}
 
 	void Update ()
@@ -103,7 +149,12 @@ public class Tile : MonoBehaviour
 		}
 
 		Vector3 position;
-		wall.GetTilePosition (layer, index, out position);
+		if (attached) {
+			wall.GetTilePosition (layer, index, out position);
+		} else {
+			wall.GetDetachedPosition (layer, index, angularOffset, controllerIndex, out position);
+		}
+			
 		transform.localPosition = position;
 
 		Vector3 center = wall.transform.position;

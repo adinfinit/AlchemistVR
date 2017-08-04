@@ -137,6 +137,19 @@ public class Wall : MonoBehaviour
 		localPosition.y = y;
 	}
 
+	public void GetDetachedPosition (int layer, int index, float angularOffset, int controllerIndex, out Vector3 localPosition)
+	{
+		float angle, y;
+		GetAngularPosition (layer, index, out angle, out y);
+
+		float radius = Radius - TileSize * ((float)controllerIndex + 0.5f);
+
+		localPosition = new Vector3 ();
+		localPosition.z = -radius * Mathf.Cos (angle + angularOffset);
+		localPosition.x = -radius * Mathf.Sin (angle + angularOffset);
+		localPosition.y = y;
+	}
+
 	public void GetTileWorldPosition (int layer, int index, out Vector3 position, out Vector3 normal)
 	{
 		GetTilePosition (layer, index, out position);

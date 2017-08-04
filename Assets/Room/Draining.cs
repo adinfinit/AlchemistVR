@@ -9,12 +9,12 @@ public class Draining
 		for (int layer = 0; layer < wall.LayerCount; layer++) {
 			for (int index = 0; index < wall.TileCount; index++) {
 				Tile tile = wall.Get (layer, index);
-				if (tile == null) {
+				if (tile == null || !tile.attached) {
 					continue;
 				}
 
 				foreach (Joint joint in tile.joints) {
-					if (tile.kind == Tile.Kind.Source) {
+					if (tile.kind == Tile.Kind.Source || !tile.attached) {
 						joint.nextLiquid = joint.liquid;
 					} else {
 						joint.nextLiquid = new Liquid ();
@@ -51,7 +51,8 @@ public class Draining
 
 	public static void FlowDown (Tile source, byte sourcePort, Tile drain, byte drainPort)
 	{
-		bool connected = source.ports [sourcePort] != null && drain != null && drain.ports [drainPort] != null;
+		bool connected = source.ports [sourcePort] != null && drain != null && drain.ports [drainPort] != null &&
+		                 source.attached && drain.attached;
 		if (connected) {
 			Joint sourceJoint = source.ports [sourcePort];
 			Joint drainJoint = drain.ports [drainPort];
