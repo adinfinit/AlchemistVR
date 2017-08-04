@@ -28,7 +28,7 @@ public class Tile : MonoBehaviour
 	// list of all joints
 	public Joint[] joints = new Joint[0];
 	// valve objects only for ports 2, 3, 4
-	public GameObject[] valve = new GameObject[6];
+	public GameObject[] fittings = new GameObject[6];
 
 	void Start ()
 	{
@@ -85,25 +85,24 @@ public class Tile : MonoBehaviour
 		right = wall.Get (layer + 1, index + (layer & 1));
 	}
 
-	public void AddValve (byte sourcePort, Tile drain, byte drainPort)
+	public void AddFitting (byte sourcePort, Tile drain, byte drainPort)
 	{
-		Vector3 sourcePos = ports [sourcePort].GlobalPort (sourcePort);
-		Vector3 drainPos = drain.ports [drainPort].GlobalPort (drainPort);
+		GameObject fittingObj = Instantiate (wall.FittingPrefab);
+		fittingObj.name = "Fitting " + sourcePort; 
+		fittings [sourcePort] = fittingObj;
 
-		GameObject obj = Geometry.CylinderBetweenPoints (sourcePos, drainPos, transform.lossyScale.x * Joint.Thickness);
-
-		obj.name = "Valve " + sourcePort; 
-		obj.transform.parent = ports [sourcePort].transform;
-		valve [sourcePort] = obj;
+		Fitting fitting = fittingObj.GetComponent<Fitting> ();
+		fittingObj.transform.parent = ports [sourcePort].transform;
+		fitting.Init (this, sourcePort, drain, drainPort);
 	}
 
-	public void RemoveValve (byte sourcePort)
+	public void RemoveFitting (byte sourcePort)
 	{
-		if (valve [sourcePort] == null) {
+		if (fittings [sourcePort] == null) {
 			return;
 		}
-		Destroy (valve [sourcePort]);
-		valve [sourcePort] = null;
+		Destroy (fittings [sourcePort]);
+		fittings [sourcePort] = null;
 	}
 
 	public void Attach ()
@@ -128,18 +127,18 @@ public class Tile : MonoBehaviour
 		Tile left, top, right;
 		GetSources (out left, out top, out right);
 		if (left != null) {
-			left.RemoveValve (2);
+			left.RemoveFitting (2);
 		}
-		if (left != null) {
-			top.RemoveValve (3);
+		if (top != null) {
+			top.RemoveFitting (3);
 		}
-		if (left != null) {
-			right.RemoveValve (4);
+		if (right != null) {
+			right.RemoveFitting (4);
 		}
 
-		RemoveValve (4);
-		RemoveValve (3);
-		RemoveValve (2);
+		RemoveFitting (4);
+		RemoveFitting (3);
+		RemoveFitting (2);
 	}
 
 	void Update ()
@@ -149,13 +148,27 @@ public class Tile : MonoBehaviour
 		}
 
 		Vector3 position;
+		float radius;
+
 		if (attached) {
-			wall.GetTilePosition (layer, index, out position);
+			wall.GetTilePosition (layer, index, out position, out radius);
 		} else {
-			wall.GetDetachedPosition (layer, index, angularOffset, controllerIndex, out position);
+			wall.GetDetachedPosition (layer, index, angularOffset, controllerIndex, out position, out radius);
 		}
-			
-		transform.localPosition = position;
+
+		{ // lerp without collapsing to center
+			position = Vector3.Lerp (transform.localPosition, position, 0.2f);
+			float y = position.y;
+			position.y = 0.0f;
+
+			float magnitude = position.magnitude;
+			if (magnitude < radius) {
+				position = position * radius / magnitude;
+			}
+
+			position.y = y;
+			transform.localPosition = position;
+		}
 
 		Vector3 center = wall.transform.position;
 		center.y = transform.position.y;

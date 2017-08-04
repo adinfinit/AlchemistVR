@@ -20,6 +20,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4079517590999626}
   - component: {fileID: 114950921776597780}
+  - component: {fileID: 135393712731206790}
   m_Layer: 0
   m_Name: PipePrefab
   m_TagString: Untagged
@@ -51,10 +52,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b93521f91d7649079b9049af6daaa7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  detached: 0
+  wall: {fileID: 0}
+  attached: 1
   kind: 1
   layer: 0
   index: 0
+  Potion: {fileID: 0}
   ports:
   - {fileID: 0}
   - {fileID: 0}
@@ -70,3 +73,15 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+--- !u!135 &135393712731206790
+SphereCollider:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1537530825917834}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}

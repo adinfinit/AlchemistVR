@@ -61,10 +61,10 @@ public class Draining
 			// drainJoint.nextLiquid = drainJoint.nextLiquid.Mix (sourceJoint.nextLiquid);
 		}
 
-		if (source.valve [sourcePort] == null && connected) {
-			source.AddValve (sourcePort, drain, drainPort);
-		} else if (source.valve [sourcePort] != null && !connected) {
-			source.RemoveValve (sourcePort);
+		if (source.fittings [sourcePort] == null && connected) {
+			source.AddFitting (sourcePort, drain, drainPort);
+		} else if (source.fittings [sourcePort] != null && !connected) {
+			source.RemoveFitting (sourcePort);
 		}
 	}
 }

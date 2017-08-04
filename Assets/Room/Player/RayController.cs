@@ -62,7 +62,7 @@ public class RayController : MonoBehaviour
 		Vector2 start = new Vector2 (StartRay.direction.x, StartRay.direction.z);
 		Vector2 current = new Vector2 (CurrentRay.direction.x, CurrentRay.direction.z);
 
-		float angularOffset = Vector2.SignedAngle (current, start) * Mathf.Deg2Rad;
+		float angularOffset = Vector2.SignedAngle (current, start) * Mathf.Deg2Rad * 2f;
 		foreach (Tile tile in Selection) {
 			tile.SetGrab (angularOffset, 0);
 		}
@@ -73,5 +73,6 @@ public class RayController : MonoBehaviour
 		foreach (Tile tile in Selection) {
 			tile.Attach ();
 		}
+		Selection.Clear ();
 	}
 }

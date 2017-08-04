@@ -7,6 +7,7 @@ public class Wall : MonoBehaviour
 	public GameObject SourcePrefab;
 	public GameObject PipePrefab;
 	public GameObject DrainPrefab;
+	public GameObject FittingPrefab;
 
 	[Header ("Grid Configuration")]
 	public int LayerCount = 7;
@@ -126,23 +127,25 @@ public class Wall : MonoBehaviour
 		angle = p * 2f * Mathf.PI;
 	}
 
-	public void GetTilePosition (int layer, int index, out Vector3 localPosition)
+	public void GetTilePosition (int layer, int index, out Vector3 localPosition, out float radius)
 	{
 		float angle, y;
 		GetAngularPosition (layer, index, out angle, out y);
 
+		radius = Radius;
+
 		localPosition = new Vector3 ();
-		localPosition.z = -Radius * Mathf.Cos (angle);
-		localPosition.x = -Radius * Mathf.Sin (angle);
+		localPosition.z = -radius * Mathf.Cos (angle);
+		localPosition.x = -radius * Mathf.Sin (angle);
 		localPosition.y = y;
 	}
 
-	public void GetDetachedPosition (int layer, int index, float angularOffset, int controllerIndex, out Vector3 localPosition)
+	public void GetDetachedPosition (int layer, int index, float angularOffset, int controllerIndex, out Vector3 localPosition, out float radius)
 	{
 		float angle, y;
 		GetAngularPosition (layer, index, out angle, out y);
 
-		float radius = Radius - TileSize * ((float)controllerIndex + 0.5f);
+		radius = Radius - TileSize * ((float)controllerIndex + 0.5f);
 
 		localPosition = new Vector3 ();
 		localPosition.z = -radius * Mathf.Cos (angle + angularOffset);
@@ -152,7 +155,8 @@ public class Wall : MonoBehaviour
 
 	public void GetTileWorldPosition (int layer, int index, out Vector3 position, out Vector3 normal)
 	{
-		GetTilePosition (layer, index, out position);
+		float radius;
+		GetTilePosition (layer, index, out position, out radius);
 		position = (Vector3)(transform.localToWorldMatrix * new Vector4 (position.x, position.y, position.z, 1));
 		normal = (position - transform.position).normalized;
 		normal.y = 0f;
