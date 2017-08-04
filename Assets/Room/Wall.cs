@@ -127,25 +127,23 @@ public class Wall : MonoBehaviour
 		angle = p * 2f * Mathf.PI;
 	}
 
-	public void GetTilePosition (int layer, int index, out Vector3 localPosition, out float radius)
+	public void GetTilePosition (int layer, int index, out Vector3 localPosition)
 	{
 		float angle, y;
 		GetAngularPosition (layer, index, out angle, out y);
 
-		radius = Radius;
-
 		localPosition = new Vector3 ();
-		localPosition.z = -radius * Mathf.Cos (angle);
-		localPosition.x = -radius * Mathf.Sin (angle);
+		localPosition.z = -Radius * Mathf.Cos (angle);
+		localPosition.x = -Radius * Mathf.Sin (angle);
 		localPosition.y = y;
 	}
 
-	public void GetDetachedPosition (int layer, int index, float angularOffset, int controllerIndex, out Vector3 localPosition, out float radius)
+	public void GetDetachedPosition (int layer, int index, float angularOffset, int controllerIndex, out Vector3 localPosition)
 	{
 		float angle, y;
 		GetAngularPosition (layer, index, out angle, out y);
 
-		radius = Radius - TileSize * ((float)controllerIndex + 0.5f);
+		float radius = Radius - TileSize * ((float)controllerIndex + 0.5f);
 
 		localPosition = new Vector3 ();
 		localPosition.z = -radius * Mathf.Cos (angle + angularOffset);
@@ -155,8 +153,7 @@ public class Wall : MonoBehaviour
 
 	public void GetTileWorldPosition (int layer, int index, out Vector3 position, out Vector3 normal)
 	{
-		float radius;
-		GetTilePosition (layer, index, out position, out radius);
+		GetTilePosition (layer, index, out position);
 		position = (Vector3)(transform.localToWorldMatrix * new Vector4 (position.x, position.y, position.z, 1));
 		normal = (position - transform.position).normalized;
 		normal.y = 0f;

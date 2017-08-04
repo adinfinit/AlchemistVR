@@ -148,12 +148,11 @@ public class Tile : MonoBehaviour
 		}
 
 		Vector3 position;
-		float radius;
 
 		if (attached) {
-			wall.GetTilePosition (layer, index, out position, out radius);
+			wall.GetTilePosition (layer, index, out position);
 		} else {
-			wall.GetDetachedPosition (layer, index, angularOffset, controllerIndex, out position, out radius);
+			wall.GetDetachedPosition (layer, index, angularOffset, controllerIndex, out position);
 		}
 
 		{ // lerp without collapsing to center
@@ -162,8 +161,8 @@ public class Tile : MonoBehaviour
 			position.y = 0.0f;
 
 			float magnitude = position.magnitude;
-			if (magnitude < radius) {
-				position = position * radius / magnitude;
+			if (magnitude < wall.Radius * 0.7f) {
+				position = position * wall.Radius * 0.7f / magnitude;
 			}
 
 			position.y = y;
