@@ -3,13 +3,11 @@
 public class PlayerController : MonoBehaviour
 {
 	private SoundManager soundManager;
-	private Lab lab;
 	private SteamVR_TrackedController _controller;
 
 	private void Start ()
 	{
 		soundManager = GameObject.Find ("SoundManager").GetComponent<SoundManager> ();
-		lab = GameObject.Find ("Lab").GetComponent<Lab> ();
 	}
 
 
