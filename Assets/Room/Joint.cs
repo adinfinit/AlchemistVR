@@ -34,7 +34,6 @@ public class Joint : MonoBehaviour
 	}
 
 	MeshRenderer[] renderers = new MeshRenderer[0];
-	Color color = new Color (0.5f, 0.5f, 0.5f);
 
 	void Update ()
 	{
@@ -42,13 +41,15 @@ public class Joint : MonoBehaviour
 			return;
 		}
 
-		if (Colors.NeedUpdate (ref color, nextLiquid.Color ())) {
-			foreach (MeshRenderer renderer in renderers) {
+		// TODO: cache joint color and update, needs fitting to update it's own color
+		Color target = nextLiquid.Color ();
+		foreach (MeshRenderer renderer in renderers) {
+			Color color = renderer.material.color;
+			if (Colors.NeedUpdate (ref color, target)) {
 				renderer.material.color = color;
 			}
 		}
 	}
-
 
 	void OnTransformChildrenChanged ()
 	{
