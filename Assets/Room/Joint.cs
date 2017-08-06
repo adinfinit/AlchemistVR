@@ -34,6 +34,7 @@ public class Joint : MonoBehaviour
 	}
 
 	MeshRenderer[] renderers = new MeshRenderer[0];
+	Color color = new Color (0.5f, 0.5f, 0.5f);
 
 	void Update ()
 	{
@@ -41,19 +42,11 @@ public class Joint : MonoBehaviour
 			return;
 		}
 
-		// TODO: cache joint color and update, needs fitting to update it's own color
-		Color target = nextLiquid.Color ();
-		foreach (MeshRenderer renderer in renderers) {
-			Color color = renderer.material.color;
-			if (Colors.NeedUpdate (ref color, target)) {
+		if (Colors.NeedUpdate (ref color, nextLiquid.Color ())) {
+			foreach (MeshRenderer renderer in renderers) {
 				renderer.material.color = color;
 			}
 		}
-	}
-
-	void OnTransformChildrenChanged ()
-	{
-		renderers = GetComponentsInChildren<MeshRenderer> ();
 	}
 
 	public Vector3 LocalPort (byte port)
@@ -103,5 +96,7 @@ public class Joint : MonoBehaviour
 			sphere.transform.localScale = Vector3.one * Thickness * 2f;
 			sphere.transform.SetParent (transform, false);
 		}
+
+		renderers = GetComponentsInChildren<MeshRenderer> ();
 	}
 }

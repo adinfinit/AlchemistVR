@@ -12,7 +12,7 @@ public class Fitting : MonoBehaviour
 
 	void Start ()
 	{
-		
+		OnTransformChildrenChanged ();	
 	}
 
 	public void Init (Tile source, byte sourcePort, Tile drain, byte drainPort)
@@ -26,19 +26,32 @@ public class Fitting : MonoBehaviour
 	}
 
 	Vector3 sourcePos, drainPos;
+	MeshRenderer[] renderers = new MeshRenderer[0];
+	Color color = new Color (0.5f, 0.5f, 0.5f);
 
 	void Update ()
 	{
 		Vector3 nextSourcePos = source.ports [sourcePort].GlobalPort (sourcePort);
 		Vector3 nextDrainPos = drain.ports [drainPort].GlobalPort (drainPort);
 
-		if (Vectors.Equal (sourcePos, nextSourcePos) && Vectors.Equal (drainPos, nextDrainPos)) {
-			return;
-		}
-		sourcePos = nextSourcePos;
-		drainPos = nextDrainPos;
+		if (!Vectors.Equal (sourcePos, nextSourcePos) || !Vectors.Equal (drainPos, nextDrainPos)) {
+			sourcePos = nextSourcePos;
+			drainPos = nextDrainPos;
 
-		MoveBetweenPoints (sourcePos, drainPos, Joint.Thickness);
+			MoveBetweenPoints (sourcePos, drainPos, Joint.Thickness);
+		}
+
+		Color target = source.ports [sourcePort].nextLiquid.Color ();
+		if (Colors.NeedUpdate (ref color, target)) {
+			foreach (Renderer renderer in renderers) {
+				renderer.material.color = color;
+			}
+		}
+	}
+
+	void OnTransformChildrenChanged ()
+	{
+		renderers = GetComponentsInChildren<MeshRenderer> ();
 	}
 
 	void MoveBetweenPoints (Vector3 p1, Vector3 p2, float radius)
