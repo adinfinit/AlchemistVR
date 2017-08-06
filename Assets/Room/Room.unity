@@ -136,7 +136,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Wall: {fileID: 1729377780}
-  camera: {fileID: 1594211579}
+  MouseCamera: {fileID: 1594211579}
 --- !u!4 &87497238
 Transform:
   m_ObjectHideFlags: 0
