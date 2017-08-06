@@ -33,16 +33,26 @@ public class Joint : MonoBehaviour
 		}
 	}
 
+	MeshRenderer[] renderers = new MeshRenderer[0];
+	Color color = new Color (0.5f, 0.5f, 0.5f);
+
 	void Update ()
 	{
-		if (tile == null) {
+		if (tile == null || renderers.Length == 0) {
 			return;
 		}
 
-		Color color = liquid.Color ();
-		foreach (MeshRenderer renderer in GetComponentsInChildren<MeshRenderer> ()) {
-			renderer.material.color = Color.Lerp (renderer.material.color, color, 0.1f);
+		if (Colors.NeedUpdate (ref color, nextLiquid.Color ())) {
+			foreach (MeshRenderer renderer in renderers) {
+				renderer.material.color = color;
+			}
 		}
+	}
+
+
+	void OnTransformChildrenChanged ()
+	{
+		renderers = GetComponentsInChildren<MeshRenderer> ();
 	}
 
 	public Vector3 LocalPort (byte port)

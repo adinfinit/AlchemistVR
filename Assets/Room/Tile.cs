@@ -174,10 +174,13 @@ public class Tile : MonoBehaviour
 		transform.LookAt (center);
 	
 		if (LiquidMaterial != null) {
-			Color color = joints [0].liquid.Color ();
-			LiquidMaterial.color = Color.Lerp (LiquidMaterial.color, color, 0.1f);
+			if (Colors.NeedUpdate (ref firstJointColor, joints [0].liquid.Color ())) {
+				LiquidMaterial.color = firstJointColor;
+			}
 		}
 	}
+
+	Color firstJointColor = new Color (0.5f, 0.5f, 0.5f);
 
 	public void Randomize ()
 	{
