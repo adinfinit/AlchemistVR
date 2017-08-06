@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class MouseController: RayController
 {
-	public Camera camera;
+	public Camera MouseCamera;
 
 	void Start ()
 	{
@@ -12,9 +12,9 @@ public class MouseController: RayController
 
 	bool GetMouseRay (out Ray ray)
 	{
-		Vector3 point = camera.ScreenToViewportPoint (Input.mousePosition);
+		Vector3 point = MouseCamera.ScreenToViewportPoint (Input.mousePosition);
 		if (point.x >= 0 && point.x <= 1 && point.y >= 0 && point.y <= 1) {
-			ray = camera.ScreenPointToRay (Input.mousePosition);
+			ray = MouseCamera.ScreenPointToRay (Input.mousePosition);
 			return true;
 		}
 

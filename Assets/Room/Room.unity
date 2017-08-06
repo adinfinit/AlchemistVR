@@ -136,6 +136,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Wall: {fileID: 1729377780}
+  camera: {fileID: 1594211579}
 --- !u!4 &87497238
 Transform:
   m_ObjectHideFlags: 0
@@ -508,7 +509,7 @@ ParticleSystem:
   moveWithTransform: 0
   moveWithCustomTransform: {fileID: 0}
   scalingMode: 1
-  randomSeed: -974020108
+  randomSeed: -162782193
   InitialModule:
     serializedVersion: 3
     enabled: 1

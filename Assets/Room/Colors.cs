@@ -6,11 +6,11 @@ public static class Colors
 {
 	public static bool NeedUpdate (ref Color show, Color target)
 	{
-		Color next = Color.Lerp (show, target, 0.1f);
-		if (Equal (show, next)) {
+		if (Equal (show, target)) {
 			return false;
 		}
-		show = next;
+
+		show = Color.Lerp (show, target, 0.1f);
 		return true;
 	}
 

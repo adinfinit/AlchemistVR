@@ -69,8 +69,7 @@ public class Joint : MonoBehaviour
 
 	public Vector3 GlobalPort (byte port)
 	{
-		Vector3 local = LocalPort (port);
-		return (Vector3)(transform.localToWorldMatrix * new Vector4 (local.x, local.y, local.z, 1f));
+		return transform.TransformPoint (LocalPort (port));
 	}
 
 	void RecreatePipes ()
@@ -88,8 +87,10 @@ public class Joint : MonoBehaviour
 			}
 		}
 
+		Matrix4x4 localToWorldMatrix = transform.localToWorldMatrix;
 		foreach (byte port in ports) {
 			Vector3 location = GlobalPort (port);
+		
 			GameObject cyl = Geometry.CylinderBetweenPoints (location, center, Thickness);
 			cyl.name = "Port " + port;
 			cyl.transform.SetParent (transform, false);
