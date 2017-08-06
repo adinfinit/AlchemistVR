@@ -32,34 +32,13 @@ public class Fitting : MonoBehaviour
 		Vector3 nextSourcePos = source.ports [sourcePort].GlobalPort (sourcePort);
 		Vector3 nextDrainPos = drain.ports [drainPort].GlobalPort (drainPort);
 
-		if (Vector3Equal (sourcePos, nextSourcePos) && Vector3Equal (drainPos, nextDrainPos)) {
+		if (Vectors.Equal (sourcePos, nextSourcePos) && Vectors.Equal (drainPos, nextDrainPos)) {
 			return;
 		}
 		sourcePos = nextSourcePos;
 		drainPos = nextDrainPos;
 
 		MoveBetweenPoints (sourcePos, drainPos, Joint.Thickness);
-	}
-
-	static bool Vector3Equal (Vector3 a, Vector3 b)
-	{
-		const float threshold = 0.01f;
-		float d;
-
-		d = a.x - b.x;
-		if (d < -threshold || threshold < d) {
-			return false;
-		}
-		d = a.y - b.y;
-		if (d < -threshold || threshold < d) {
-			return false;
-		}
-		d = a.z - b.z;
-		if (d < -threshold || threshold < d) {
-			return false;
-		}
-
-		return true;
 	}
 
 	void MoveBetweenPoints (Vector3 p1, Vector3 p2, float radius)

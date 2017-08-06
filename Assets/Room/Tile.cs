@@ -147,6 +147,7 @@ public class Tile : MonoBehaviour
 			return;
 		}
 
+
 		Vector3 position;
 
 		if (attached) {
@@ -155,7 +156,8 @@ public class Tile : MonoBehaviour
 			wall.GetDetachedPosition (layer, index, angularOffset, controllerIndex, out position);
 		}
 
-		{ // lerp without collapsing to center
+		// lerp without collapsing to center
+		if (!Vectors.Equals (transform.localPosition, position)) {
 			position = Vector3.Lerp (transform.localPosition, position, 0.2f);
 			float y = position.y;
 			position.y = 0.0f;
@@ -167,11 +169,11 @@ public class Tile : MonoBehaviour
 
 			position.y = y;
 			transform.localPosition = position;
-		}
 
-		Vector3 center = wall.transform.position;
-		center.y = transform.position.y;
-		transform.LookAt (center);
+			Vector3 center = wall.transform.position;
+			center.y = transform.position.y;
+			transform.LookAt (center);
+		}
 	
 		if (LiquidMaterial != null) {
 			if (Colors.NeedUpdate (ref firstJointColor, joints [0].liquid.Color ())) {

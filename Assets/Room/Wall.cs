@@ -12,6 +12,7 @@ public class Wall : MonoBehaviour
 	[Header ("Grid Configuration")]
 	public int LayerCount = 7;
 	public int TileCount = 11;
+	float tileDoubleIndexToAngle = 0.0f;
 
 	public int SourceCount = 5;
 	public int DrainCount = 5;
@@ -23,6 +24,8 @@ public class Wall : MonoBehaviour
 
 	void Start ()
 	{
+		tileDoubleIndexToAngle = Mathf.PI / (float)(TileCount);
+
 		CreateGrid ();
 		InvokeRepeating ("Drain", 0f, 0.3f);
 	}
@@ -123,8 +126,9 @@ public class Wall : MonoBehaviour
 	public void GetAngularPosition (int layer, int index, out float angle, out float y)
 	{
 		y = LayerHeight (layer);
-		float p = (float)(2 * index + (layer & 1)) / (float)(2 * TileCount);
-		angle = p * 2f * Mathf.PI;
+		// float p = (float)(index + index + (layer & 1)) *;
+		// angle = p * 2f * Mathf.PI;
+		angle = (float)(index + index + (layer & 1)) * tileDoubleIndexToAngle;
 	}
 
 	public void GetTilePosition (int layer, int index, out Vector3 localPosition)
